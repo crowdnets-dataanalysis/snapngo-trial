@@ -1,8 +1,8 @@
 import random
 import pymysql
+import loadGraph
 
-def insertTask():
-
+def connectDB():
     # Connect to the database
     db = pymysql.connect(
         host='localhost',
@@ -11,23 +11,37 @@ def insertTask():
         db='snapngo_db'
     )
 
+    return db
+
+def insertTasks(numTasks):
+    # Connect to database
+    db = connectDB();
+
     # Create a cursor object
     cursor = db.cursor()
 
-    # Generate a random vertex number and time
-    vertex = random.randint(1, 20)
-    time = random.randint(1, 100)
+    # Get matrix representation of graph and dictionary of vertex indices and location descriptions
+    matrix, vertices = loadGraph.read_file("graph.txt")
 
-    # Insert the vertex and time into the database
-    query = "INSERT INTO tasks(vertex, time) VALUES (%s, %s)"
-    values = (vertex, time)
-    cursor.execute(query, values)
-
-    # Commit the changes to the database
-    db.commit()
+    for i in range(numTasks):
+        # Insert the vertex and time into the database
+        query = "INSERT INTO tasks(vertex, time) VALUES (%s, %s)"
+        values = createTask(vertices)
+        cursor.execute(query, values)
+        # Commit the changes to the database
+        db.commit()
 
     # Close the database connection
     db.close()
 
+def createTask(vertices):
+    # Generate a random vertex number and time
+    vertex = random.randint(1, len(vertices))
+    time = random.randint(1, 100)
+
+    # Return location description and time
+    return vertices[vertex], time
+
+    
 if __name__ == '__main__':
-    insertTask()
+    insertTasks(3)
