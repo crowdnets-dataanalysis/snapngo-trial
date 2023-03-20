@@ -25,7 +25,7 @@ def insertTasks(numTasks):
 
     for i in range(numTasks):
         # Insert the vertex and time into the database
-        query = "INSERT INTO tasks(vertex, time) VALUES (%s, %s)"
+        query = "INSERT INTO Tasks(location, time) VALUES (%s, %s)"
         values = createTask(vertices)
         cursor.execute(query, values)
         # Commit the changes to the database
