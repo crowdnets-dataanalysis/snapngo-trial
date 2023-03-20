@@ -2,20 +2,20 @@ import random
 import pymysql
 import loadGraph
 
-def connectDB():
+def connectDB(dbName):
     # Connect to the database
     db = pymysql.connect(
         host='localhost',
         user='root', 
         password='password', # edit
-        db='snapngo_db'
+        db=dbName
     )
 
     return db
 
 def insertTasks(numTasks):
     # Connect to database
-    db = connectDB();
+    db = connectDB('snapngo_db');
 
     # Create a cursor object
     cursor = db.cursor()
