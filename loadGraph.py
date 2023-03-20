@@ -8,10 +8,10 @@ def read_file(fname):
         vertices = {}
         for _ in range(numVertices):
             line = file.readline().strip().split(",")
-            vertices[int(line[0])] = line[1]
+            vertices[line[0]] = line[1]
 
         # Create an empty matrix
-        matrix = [[int(-1) for _ in range(numVertices)] for _ in range(numVertices)]
+        matrix = [[-1 for _ in range(numVertices)] for _ in range(numVertices)]
 
         # Next, read the edges and build the graph
         for line in file:
