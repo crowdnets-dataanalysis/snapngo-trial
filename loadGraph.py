@@ -1,32 +1,32 @@
-#code to open text file and read into a matrix
+# code to open text file and read into a matrix
 def read_file(fname):
-    # Open the file
-    file = open(fname, "r")
-    # Read the first line that contains the number of vertices
-    # numVertices is the number of vertices in the graph (n)
-    numVertices = int(file.readline())
+    with open(fname, "r") as file:
+        # Read the first line that contains the number of vertices
+        numVertices = int(file.readline().strip())
 
-    #read the next numVertices lines which contain the vertex number and the actual location
-    #dictionary is all of the verticies and their values
-    dictionary = {}
-    for x in range(20):
-        line = file.readline().strip().split(",")
-        dictionary[line[0]]= line[1]
-    #make matrix
-    matrix = [[-1 for i in range (numVertices)]for i in range (numVertices)]
-    # Next, read the edges and build the graph
-    for line in file:
-        # edge is a list of 2 indices representing a pair of adjacent vertices
-        # edge[0] contains the first vertex (index between 0 and numVertices-1)
-        # edge[1] contains the second vertex (index between 0 and numVertices-1)
-        edge = line.strip().split(",")
-        matrix[int(edge[0])-1][int(edge[1])-1]= edge[2]
-        matrix[int(edge[1])-1][int(edge[0])-1]= edge[2]
-        print(matrix)
-    # Use the edge information to populate your adjacency list
+        # Create a dictionary to store each vertex and its corresponding location description
+        vertices = {}
+        for _ in range(numVertices):
+            line = file.readline().strip().split(",")
+            vertices[int(line[0])] = line[1]
+
+        # Create an empty matrix
+        matrix = [[int(-1) for _ in range(numVertices)] for _ in range(numVertices)]
+
+        # Next, read the edges and build the graph
+        for line in file:
+            # edge is a list of 3 values representing a pair of adjacent vertices and their distance
+            edge = line.strip().split(",")
+            v1, v2, distance = int(edge[0]), int(edge[1]), float(edge[2])
+
+            # Update the matrix with the distance between v1 and v2
+            matrix[v1-1][v2-1] = distance
+            matrix[v2-1][v1-1] = distance
+
+        # Return the matrix and the dictionary of vertices
+        return matrix, vertices
     
-    # Close the file safely after done reading
-    file.close()
-
 if __name__ == '__main__':
-    matrix = read_file("graph.txt")
+    matrix, vertices = read_file("graph.txt")
+    print(matrix)
+    print(vertices)
