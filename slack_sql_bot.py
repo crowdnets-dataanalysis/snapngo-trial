@@ -20,14 +20,13 @@ server = SSHTunnelForwarder(
 server.start()
 
 db_user = 'crowdnets'
-#db_password = 'your_database_password'
+db_password = 'your_database_password'
 db_name = 'crowdnets_db'
 
 connection = pymysql.connect(
     host='localhost',
     user=db_user,
-    #password=db_password,
+    password=db_password,
     db=db_name,
     port=server.local_bind_port
 )
-
