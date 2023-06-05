@@ -1,3 +1,4 @@
+# terminal command to get into SQL: mysql -u root -p
 from slack_sdk import WebClient
 
 import pymysql
