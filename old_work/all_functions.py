@@ -5,6 +5,7 @@ Reworking all pre-existing snap N go functions to work with current framework.
 """
 import os
 from pathlib import Path
+import pymysql
 from dotenv import load_dotenv
 import random
 
