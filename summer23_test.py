@@ -1,4 +1,8 @@
-# terminal command to get into SQL: mysql -u root -p
+"""
+terminal command to get into SQL: 
+source .bash_profile
+mysql -u root -p
+"""
 from slack_sdk import WebClient
 
 import pymysql
@@ -27,4 +31,4 @@ output = cur.fetchall()[0][0]
 conn.close()
 
 client = WebClient(token=SLACK_TOKEN)
-client.chat_postMessage(channel='#snap-n-go', text=f'From SQL database: {output}!')
+client.chat_postMessage(channel='#bot-testing', text=f'From SQL database: {output}!')
