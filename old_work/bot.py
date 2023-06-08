@@ -11,7 +11,7 @@ slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, '/slack/events', app)
 
 client = slack.WebClient(token=SLACK_TOKEN)
 
-@ slack_event_adapter.on('message')
+@ slack_event_adapter.on('message') 
 def message(payload):
     print(payload)
     event = payload.get('event', {})
