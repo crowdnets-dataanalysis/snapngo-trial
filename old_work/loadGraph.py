@@ -30,3 +30,4 @@ if __name__ == '__main__':
     matrix, vertices = read_file("graph.txt")
     print(matrix)
     print(vertices)
+    print(list(vertices.values()))

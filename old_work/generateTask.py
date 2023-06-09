@@ -3,6 +3,7 @@ import pymysql
 import loadGraph
 
 def connectDB(dbName):
+
     # Connect to the database
     db = pymysql.connect(
         host='localhost',
