@@ -1,13 +1,8 @@
 """
-terminal command to get into SQL: 
-source .bash_profile
-mysql -u root -p
-
-
-to get slack running:
-ngrok http 5000 (in one terminal)
-run this file in another terminal
-(both of these things need to happen in order to run )
+Author: Sofia Kobayashi, based on work from Amy Fung & Cynthia Wang
+Date: 06/12/2023
+Description: Simple Slack Bot that listens for user-sent messages, then responds
+    to them.
 """
 import os
 from pathlib import Path
@@ -21,7 +16,7 @@ from slack_sdk.errors import SlackApiError
 
 
 # setting up .env path
-env_path = Path('.') / '.env'
+env_path = Path('..') / '.env'
 load_dotenv(dotenv_path=env_path)
 
 def connectDB(dbName):
@@ -74,9 +69,11 @@ def message(payload):
     elif 'cat' in text:
         print("--  cat in text!!")
         try:
+            # Get cat-specific info
             cat_id = [char for char in text if char.isdigit()][0]
             print(cat_id)
 
+            # Connect to SQL database & get cat info
             conn = connectDB('test1')
             cur = conn.cursor()
             cur.execute("USE test1;")
@@ -85,6 +82,7 @@ def message(payload):
             conn.close()
             print(cat_info)
 
+            # Send image response thru Slack Bot
             response = client.files_upload_v2(
                 file='/Users/skobayashi/Desktop/snap-n-go/snapngo/cat1.png',
                 # initial_comment=f'cat',
