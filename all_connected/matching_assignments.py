@@ -67,7 +67,6 @@ def insert_assignments(assignment_info, db):
     cursor = db.cursor()
 
     for assignment in assignment_info:
-        print(assignment)
         # Create & execute query
         query = f"INSERT INTO Assignments(taskID, userID, status) VALUES \
             ({assignment['task_id']}, {assignment['user_id']}, 'not assigned');"

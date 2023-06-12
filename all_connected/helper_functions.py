@@ -9,6 +9,7 @@ import pymysql
 from dotenv import load_dotenv
 
 from flask import Flask
+from threading import Timer
 
 # setting up .env path (for keeping confidential data confidential)
 env_path = Path('..') / '.env'
@@ -61,7 +62,24 @@ def read_file(fname):
         # Return the matrix and the dictionary of vertices
         return matrix, vertices
 
+class RepeatTimer(Timer):
+    def __init__(self, func, seconds=10, minutes=0, hours=0):
+        super().__init__(seconds + minutes*60 + hours*3600, func)
+        func()
+
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
 
 
 if __name__ == '__main__':
-    pass
+    import time
+    def t1():
+        print(1)
+        print(3)
+
+    timer = RepeatTimer(t1, 1)
+
+    timer.start()
+    time.sleep(6)
+    timer.cancel()
