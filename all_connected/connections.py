@@ -2,12 +2,12 @@
 Name: Sofia Kobayashi
 Date: 06/07/2023
 Description: File that connects all 5 components & calls functions for them to 
-    run the backend of Snap N Go. TEST
+    run the backend of Snap N Go.
 """
 import helper_functions
 import matching_assignments
 import task
-# import messenger
+import messenger
 # import bot
 
 ### ### Control Center ### ###
@@ -49,10 +49,9 @@ match_timer = helper_functions.RepeatTimer(match_call,
 
 ### ### MESSENGER call ### ###
 # Sends out tasks & uodates recommendTime in 'assignments' table
-unassigned_info = [0]
 def messenger_call():
     """Takes & returns nothing. Container for match messenger timer."""
-    unassigned_info = matching_assignments.match_users_and_tasks(matching_assignments.algorithm_random, DB_NAME)
+    unassigned_info = messenger.getAssignments(DB_NAME)
 
 messenger_timer = helper_functions.RepeatTimer(messenger_call,
                                 seconds=10,
@@ -64,4 +63,11 @@ unassigned_info = messenger.get_unassgined_assignments(DB_NAME)
 
 ### ### BOT call ### ###
 # Sends tasks to users over Slack
-# bot.send_tasks(unassigned_info)
+def bot_call():
+    """Takes & returns nothing. Container for bot timer."""
+    bot.send_tasks(unassigned_info)
+
+messenger_timer = helper_functions.RepeatTimer(messenger_call,
+                                seconds=10,
+                                minutes=0,
+                                hours=0)
