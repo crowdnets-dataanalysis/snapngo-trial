@@ -14,7 +14,7 @@ import time
 
 
 ### ### Control Center ### ###
-DB_NAME = 'snapngo_test'
+DB_NAME = 'test1'
 
 TASK_CYCLE = 5
 NUM_TASKS_PER_CYCLE = 3
