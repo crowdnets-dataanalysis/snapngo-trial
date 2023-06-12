@@ -8,8 +8,7 @@ run this file in another terminal
 (both of these things need to happen in order to run )
 """
 import os
-import loadGraph
-import cat_bot_interactive
+import bot
 import helper_functions
 from pathlib import Path
 from dotenv import load_dotenv
@@ -34,12 +33,14 @@ BOT_ID = client.api_call("auth.test")['user_id']
 
 
 def getAllUsersInfo():
-    return cat_bot_interactive.getAllUsersInfo()
+    return bot.getAllUsersInfo()
 
-def addUsers():
+def addUsers(conn):
     '''
+    Gets teh database connection. Returns nothing.
     Add users to the database based on the current list of users in the the workplace 
     '''
+    cur = conn.cursor()
     user_store = getAllUsersInfo()
     query1 = '''SELECT id FROM users'''
     cur.execute(query1)
@@ -57,18 +58,21 @@ def addUsers():
             conn.commit()
     
 
-def getAssignments():
+def getAssignments(db_name):
     '''
     Get all the assignments with status 'not assigned' together with each task's details. 
     Create a dictionary with keys being user ids and values being a list of tasks (with
     details) that user is assigned
     Return the dictionary
     '''
+    conn = helper_functions.connectDB(db_name)
+    cur = conn.cursor()
+    cur.execute(f"UPDATE tasks SET expired = 1 WHERE starttime + INTERVAL time_window minute < now()")
     query = '''SELECT assignments.taskID, assignments.userID, 
-                tasks.location, tasks.description, tasks.starttime, tasks.window, 
+                tasks.location, tasks.description, tasks.starttime, tasks.time_window, 
                 tasks.compensation
                 FROM assignments INNER JOIN tasks ON assignments.taskID = tasks.id
-                WHERE assignments.status = 'not assigned';'''
+                WHERE assignments.status = 'not assigned' AND tasks.expired != 1;'''
     cur.execute(query)
     assignments = cur.fetchall()
     assignmentsDict = {}
@@ -79,16 +83,11 @@ def getAssignments():
             (assignmentsDict[uid]).append(assign)
         else:
             assignmentsDict[uid] = [assign]
+    conn.close()        
     #print(assignmentsDict)
     return assignmentsDict
 
 if __name__ == "__main__":
-    conn = helper_functions.connectDB('test1')
-    matrix, vertices = loadGraph.read_file("graph.txt")
-    #print(matrix)
-    #print(vertices)
-    cur = conn.cursor()
     #addUsers()
-    assignDict = getAssignments()
-    cat_bot_interactive.sendTasks(assignDict)
-    conn.close()
+    assignDict = getAssignments('test1')
+    bot.sendTasks(assignDict)
