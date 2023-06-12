@@ -141,11 +141,12 @@ def message(payload):
     Returns nothing.
     """
     # Recieve payload
+    print(payload)
     event = payload.get('event', {})
     channel_id = event.get('channel')
     user_id = event.get('user')
     text = event.get('text')
-    print(f'\nUSER_ID: {user_id}\n')
+    #print(f'\nUSER_ID: {user_id}\n')
     
     # Handle certain responses
     if BOT_ID != user_id:
