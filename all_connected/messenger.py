@@ -8,8 +8,7 @@ run this file in another terminal
 (both of these things need to happen in order to run )
 """
 import os
-import loadGraph
-import cat_bot_interactive
+import bot
 import helper_functions
 from pathlib import Path
 from dotenv import load_dotenv
@@ -34,10 +33,11 @@ BOT_ID = client.api_call("auth.test")['user_id']
 
 
 def getAllUsersInfo():
-    return cat_bot_interactive.getAllUsersInfo()
+    return bot.getAllUsersInfo()
 
 def addUsers(conn):
     '''
+    Gets teh database connection. Returns nothing.
     Add users to the database based on the current list of users in the the workplace 
     '''
     cur = conn.cursor()
@@ -88,11 +88,6 @@ def getAssignments(db_name):
     return assignmentsDict
 
 if __name__ == "__main__":
-    
-    matrix, vertices = loadGraph.read_file("graph.txt")
-    #print(matrix)
-    #print(vertices)
-    
     #addUsers()
     assignDict = getAssignments('test1')
-    cat_bot_interactive.sendTasks(assignDict)
+    bot.sendTasks(assignDict)
