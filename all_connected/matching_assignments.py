@@ -68,8 +68,8 @@ def insert_assignments(assignment_info, db):
 
     for assignment in assignment_info:
         # Create & execute query
-        query = f"INSERT INTO Assignments(taskID, userID, status) VALUES \
-            ({assignment['task_id']}, {assignment['user_id']}, 'not assigned');"
+        query = f"INSERT INTO assignments(`taskID`, `userID`, `status`) VALUES \
+            ({assignment['task_id']}, '{assignment['user_id']}', 'not assigned');"
         cursor.execute(query)
 
         # Commit the changes to the database
