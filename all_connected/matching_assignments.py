@@ -9,7 +9,7 @@ import pymysql
 import helper_functions
 from datetime import datetime
 
-### ### HELPER FUNCTIONS ### ###
+### ### SPECIFIC HELPER FUNCTIONS ### ###
 def read_table(db, table_name):
     """
     * Helper function for match_users_and_tasks()*
@@ -56,20 +56,6 @@ def create_task_user_dict(assignment_data):
     return task_users_dict
 
 
-def create_assignment(assignment_info):
-    """
-     * Helper function for match_users_and_tasks() *
-     * this function exists to clarify the assignment generation process *
-    Takes (list) assignment info (task_id (int) and user_id (int)), likely from the Matching 
-        Algorithm.
-    Returns a dict of relevant values (all others will be determined and written in later).
-    
-    """
-    task_id, user_id = assignment_info
-    return {'task_id': task_id, 
-            'user_id': user_id}
-
-
 def insert_assignments(assignment_info, db):
     """
      * Helper function for match_users_and_tasks() *
@@ -83,7 +69,8 @@ def insert_assignments(assignment_info, db):
     for assignment in assignment_info:
         print(assignment)
         # Create & execute query
-        query = f"INSERT INTO Assignments(taskID, userID, status) VALUES ({assignment['task_id']}, {assignment['user_id']}, 'not assigned');"
+        query = f"INSERT INTO Assignments(taskID, userID, status) VALUES \
+            ({assignment['task_id']}, {assignment['user_id']}, 'not assigned');"
         cursor.execute(query)
 
         # Commit the changes to the database
@@ -91,20 +78,12 @@ def insert_assignments(assignment_info, db):
 
 
 
-### ### EXPIRATION CHECKER ### ###
-def update_task_expiration(db_name):
-    db = helper_functions.connectDB(db_name)
-    now = datetime.now().strftime("%m-%d-%Y, %H:%M:%S")
-    print(now)
-    db.execute(f"UPDATE tasks SET expired = 1 WHERE starttime <='12.15.2015 00:00:00';")
-
-
 ### ### ALGORITHMS ### ###
 def algorithm_random(assignment_data, task_data, user_data):
     """
     * One of many possible matching algorithms for match_users_and_tasks()*
-    Takes a list of all user ids & a list of all unassigned task ids
-    Randomly matches a user to each task.
+    Takes a list of all user ids & a list of all unassigned task ids.
+    Randomly matches a user (who has never been previously assigned to this task) to each task.
     Returns a list of those user-task matches, format: [[task_id, user_id], [...], ...]
     """
     # Assemble task-user dict, key: task_id (int), value: ids of all previously-assigned users (set)
@@ -127,8 +106,10 @@ def algorithm_random(assignment_data, task_data, user_data):
 ### ### OVERALL MATCHING & ASSIGNMENT GENERATION ### ###
 def match_users_and_tasks(matching_algo, db_name):
     """
-    Takes 'users' table data & 'tasks' table data, and a matching algorithm (function)
-    Match a user to each task using the given algorithm, 
+    Takes 'users' table data & 'tasks' table data, and a matching algorithm (function).
+    Finds unexpired & unassigned tasks, matches users to those tasks, writes those
+        Assignments to the 'assignments' table.
+    Returns nothing.
     """
     # Open database connection
     db = helper_functions.connectDB(db_name)
@@ -156,7 +137,6 @@ def match_users_and_tasks(matching_algo, db_name):
 
     # Close database connection
     db.close()
-
 
 
 

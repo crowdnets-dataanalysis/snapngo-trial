@@ -1,5 +1,5 @@
 """
-Name: Sofia Kobayashi
+Name: Sofia Kobayashi, based on work from Amy Fung & Cynthia Wang
 Date: 06/07/2023
 Description: All functions for the Task Generation Component.
 """
@@ -39,7 +39,7 @@ def create_task(locations):
     # Generate a random location, time window (seconds), and compensation (cents)
     location = random.choice(locations)
     
-    with open('task_descriptions.json', 'r') as infile:
+    with open('data/task_descriptions.json', 'r') as infile:
         all_descriptions = json.load(infile)
 
     return {'location': location,
@@ -83,7 +83,7 @@ def generate_tasks(num_tasks, db_name):
     db = helper_functions.connectDB(db_name);
 
     # Get matrix representation of graph and dictionary of vertex indices & locations
-    with open('locations.json', 'r') as infile:
+    with open('data/task_locations.json', 'r') as infile:
         locations_list = json.load(infile)
 
     # Generate a Tasks & random start times
