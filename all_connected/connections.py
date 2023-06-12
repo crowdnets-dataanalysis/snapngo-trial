@@ -12,6 +12,7 @@ import bot
 
 import time
 
+
 ### ### Control Center ### ###
 DB_NAME = 'snapngo_test'
 
@@ -29,9 +30,8 @@ MESSENGER_CYCLE = 15
 def task_call():
     """Takes & returns nothing. Container for task call timer."""
     task.generate_tasks(NUM_TASKS_PER_CYCLE, DB_NAME)
-    print("tasks generated")
 
-task_timer = helper_functions.RepeatTimer(task_call, 10)
+task_timer = helper_functions.RepeatTimer(task_call,2)
 
 
 ### ### Matching Algorithm & Assignments call ### ###
@@ -40,6 +40,7 @@ def match_call():
     """Takes & returns nothing. Container for match call timer."""
     matching_assignments.match_users_and_tasks(matching_assignments.algorithm_random, DB_NAME)
     print("tasks matched")
+
 
 match_timer = helper_functions.RepeatTimer(match_call,
                                 seconds=10,
