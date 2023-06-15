@@ -9,6 +9,7 @@ run this file in another terminal
 """
 import os
 import bot
+import testbot
 import helper_functions
 from pathlib import Path
 from dotenv import load_dotenv
@@ -29,17 +30,18 @@ slack_event_adapter = SlackEventAdapter(os.environ['CAT_BOT_SIGNING_SECRET'], '/
 client = WebClient(token=os.environ['CAT_BOT_TOKEN'])
 # Get the bot id
 BOT_ID = client.api_call("auth.test")['user_id']
-
+db_name = "test1" # future: get var value from connections.py
 
 
 def getAllUsersInfo():
     return bot.getAllUsersInfo()
 
-def addUsers(conn):
+def addUsers():
     '''
     Gets teh database connection. Returns nothing.
     Add users to the database based on the current list of users in the the workplace 
     '''
+    conn = helper_functions.connectDB(db_name)
     cur = conn.cursor()
     user_store = getAllUsersInfo()
     query1 = '''SELECT id FROM users'''
@@ -56,9 +58,9 @@ def addUsers(conn):
             name = user_store[key]['name']
             cur.execute(query2, (name, key))
             conn.commit()
-    
+    conn.close()
 
-def getAssignments(db_name):
+def getAssignments():
     '''
     Get all the assignments with status 'not assigned' together with each task's details. 
     Create a dictionary with keys being user ids and values being a list of tasks (with
@@ -67,27 +69,57 @@ def getAssignments(db_name):
     '''
     conn = helper_functions.connectDB(db_name)
     cur = conn.cursor()
-    cur.execute(f"UPDATE tasks SET expired = 1 WHERE starttime + INTERVAL time_window minute < now()")
+    cur.execute("UPDATE tasks SET `expired` = 1 WHERE (starttime + INTERVAL time_window MINUTE) < NOW()")
+    conn.commit()
+    print("finished1")
     query = '''SELECT assignments.taskID, assignments.userID, 
                 tasks.location, tasks.description, tasks.starttime, tasks.time_window, 
                 tasks.compensation
                 FROM assignments INNER JOIN tasks ON assignments.taskID = tasks.id
-                WHERE assignments.status = 'not assigned' AND tasks.expired != 1;'''
+                WHERE (assignments.status = 'not assigned' AND tasks.expired != 1)'''
     cur.execute(query)
     assignments = cur.fetchall()
+    conn.close()
+    print(assignments)
     assignmentsDict = {}
-    for assign in assignments:
-        uid = assign[1]
+    for assignment in assignments:
+        uid = assignment[1]
         #print(uid)
         if uid in assignmentsDict:
-            (assignmentsDict[uid]).append(assign)
+            (assignmentsDict[uid]).append(assignment)
         else:
-            assignmentsDict[uid] = [assign]
-    conn.close()        
+            assignmentsDict[uid] = [assignment]       
     #print(assignmentsDict)
     return assignmentsDict
 
+def updateAssignStatus(status, task_id, user_id):
+    '''
+    Takes database name, the new status of the assignment, the task id and 
+        the user id. 
+    Updates the database accordingly.  
+        If new status is pending (only when called in ), then ignore task id and user id, update all
+        
+    Helper function to update assignment status,
+    '''
+    conn = helper_functions.connectDB(db_name)
+    cur = conn.cursor()
+    if status == "pending":
+        query = '''UPDATE assignments INNER JOIN tasks 
+                ON assignments.taskID = tasks.id
+                SET assignments.status = 'pending'
+                WHERE (assignments.status = 'not assigned' AND tasks.expired != 1)
+        '''
+        cur.execute(query)
+    elif status == "accepted" or status == "rejected":
+        cur.execute(f"UPDATE assignments SET `status` = '{status}' WHERE taskID={task_id} AND userID='{user_id}'")
+    conn.commit()
+    conn.close
+
+def sendTasks(assignDict):
+    testbot.sendTasks(assignDict)
+    updateAssignStatus("pending", 0, 0)
+    
 if __name__ == "__main__":
     #addUsers()
-    assignDict = getAssignments('test1')
-    bot.sendTasks(assignDict)
+    assignDict = getAssignments()
+    sendTasks(assignDict)

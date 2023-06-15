@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import pymysql
 import json
 import requests
+import messenger
 
 from slack_sdk import WebClient
 from flask import Flask, request
@@ -94,7 +95,8 @@ def generateMessage(assignList):
                             "type": "plain_text",
                             "text": "Accept",
                         },
-                        "value": "accept"
+                        "value": "accepted",
+                        "action_id": "accepted"
                     },
                     {
                         "type": "button",
@@ -102,7 +104,8 @@ def generateMessage(assignList):
                             "type": "plain_text",
                             "text": "Reject",
                         },
-                        "value": "reject"
+                        "value": "rejected",
+                        "action_id": "rejected"
                     }
                 ],
                 "block_id": str(taskInfo[0])
@@ -130,26 +133,6 @@ def sendTasks(assignmentsDict):
                 # str like 'invalid_auth', 'channel_not_found'
                 assert e.response["error"]
                 print(f"Got an error: {e.response['error']}")
-'''
-# Listens to incoming messages that contain "hello"
-@app.message("hello")
-def message_hello(message, say):
-    # say() sends a message to the channel where the event was triggered
-    say(
-        blocks=[
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f"Hey there <@{message['user']}>!"},
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Click Me"},
-                    "action_id": "button_click"
-                }
-            }
-        ],
-        text=f"Hey there <@{message['user']}>!"
-    )
-'''
 
 @app.message()
 def any_message(payload, say):
@@ -168,93 +151,7 @@ def any_message(payload, say):
     
     # Handle certain responses
     if BOT_ID != user_id:
-        if text == "hi":
-            try:
-                reply = [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": text
-                        }
-                    },
-                    {
-                        "type": "actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Accept",
-                                },
-                                "value": "accept",
-                                "action_id" : "accept"
-                            },
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Reject",
-                                },
-                                "value": "reject",
-                                "action_id" : "reject"
-                            }
-                        ],
-                        "block_id": "task1"
-                    }
-                ]
-                say(blocks = reply, text = "new tasks")
-                #client.chat_postMessage(channel=f"@{user_id}", blocks = reply)
-            except SlackApiError as e:
-                # You will get a SlackApiError if "ok" is False
-                assert e.response["ok"] is False
-                # str like 'invalid_auth', 'channel_not_found'
-                assert e.response["error"]
-                print(f"Got an error: {e.response['error']}")
-
-        else:
-            try:
-                reply = [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": text
-                        }
-                    },
-                    {
-                        "type": "actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Accept",
-                                },
-                                "value": "accept",
-                                "action_id" : "accept"
-                            },
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Reject",
-                                },
-                                "value": "reject",
-                                "action_id" : "reject"
-                            }
-                        ],
-                        "block_id": "task2"
-                    }
-                ]
-                say(blocks = reply, text = "new tasks")
-                #client.chat_postMessage(channel=f"@{user_id}", blocks = reply)
-            except SlackApiError as e:
-                # You will get a SlackApiError if "ok" is False
-                assert e.response["ok"] is False
-                # str like 'invalid_auth', 'channel_not_found'
-                assert e.response["error"]
-                print(f"Got an error: {e.response['error']}")
+        return #needs to be changed
 
 def getPic(url, token, user_id, task_id):
     '''
@@ -270,24 +167,31 @@ def getPic(url, token, user_id, task_id):
     open(filename, 'wb').write(r.content)
 
 
-@app.action("accept")
+@app.action("accepted")
 def action_button_click(body, ack, say):
     '''
-    body['actions'][0]   {'value': 'accept', 'block_id': 'task1', 'type': 'button', 'action_id': 'accept', 'text':...}
+    body['actions'][0]   {'value': 'accepted', 'block_id': '1', 'type': 'button', 'action_id': 'accepted', 'text':...}
     '''
     # Acknowledge the action
     ack()
-    print("ACCEPT")
-    print(body)
-    #say(f"<@{body['user']['id']}> clicked the button")
+    action = body['actions'][0]
+    status = action['value']
+    task = int(action['block_id'])
+    user = str(body['user']['id'])
+    messenger.updateAssignStatus(status, task, user)
+    say(f"<@{body['user']['id']}> accepted task {body['actions'][0]['block_id']}")
+    
 
-@app.action("reject")
+@app.action("rejected")
 def action_button_click(body, ack, say):
     # Acknowledge the action
     ack()
-    print("REJECT")
-    print(body)
-    #say(f"<@{body['user']['id']}> clicked the button")
+    action = body['actions'][0]
+    status = action['value']
+    task = int(action['block_id'])
+    user = str(body['user']['id'])
+    messenger.updateAssignStatus(status, task, user)
+    say(f"<@{body['user']['id']}> rejected task {body['actions'][0]['block_id']}")
 
 # Start your app
 if __name__ == "__main__":
