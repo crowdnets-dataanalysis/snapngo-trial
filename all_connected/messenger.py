@@ -5,7 +5,7 @@ mysql -u root -p
 to get slack running:
 ngrok http 5000 (in one terminal)
 run this file in another terminal
-(both of these things need to happen in order to run )
+(both of these things need to happen in order to run)
 """
 import os
 import bot
