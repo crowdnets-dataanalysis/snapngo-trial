@@ -1,0 +1,85 @@
+{
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Hey there 👋 I'm TaskBot. I'm here to assign you tasks, accept your  submissions, and give you help!"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*1️⃣ Receiving Tasks.* Periodically, I'll send you a couple of small tasks to complete! You must accept each one before submitting anything for it. Each task has a:\n        •  Start time: when the task opens for submissions\n        •  Window: how long the task will be open for\n        •  Description: what this task entails\n        •  ✨ Compensation✨: the money you'll get for successfully completing this task! It will all be paid out at the end."
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*2️⃣ Accepting Tasks* Just press the 'Accept' button near the task you want and I'll send you a confirmation back! Remember, you can't change your answer once you accept or reject a task."
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*3️⃣ Submitting to a Task.*\n    *1.* Complete the task's objective \n    *2.* Go to the @TaskBot DM channel here on Slack \n    *3.* Type the task number & attach that task's image (see below)\n"
+			}
+		},
+		{
+			"type": "image",
+			"title": {
+				"type": "plain_text",
+				"text": "image1",
+				"emoji": true
+			},
+			"image_url": "https://i.imgur.com/Dxij9Po.jpg",
+			"alt_text": "image1"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "\n.  *4.* Send the message!\n    *5.* We'll check the task & send back a confirmation of completion \n            •  This step may take a few minutes"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "🌸 *Freqently Asked Questions* 🌸 \n*When & how will I get paid?*\nYou'll get paid out the full amount you've earned at the end of the summer program. You can recieve the money through OPTIONS.\n\n*QUESTION*\n answer. \n\n*QUESTION*\n answer. \n\n*QUESTION*\n answer."
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Thank you so much for being part of Snap N Go! If you have any further questions, please email ym102@wellesley.edu. \n\nIf you'd like to report any bugs or make a recommendation, please fill out this Google form:"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "Go to Google Form!"
+					},
+					"style": "primary",
+					"value": "bugs_form",
+					"url": "https://forms.gle/1yR72MVU2XgHXk1T6"
+				}
+			]
+		}
+	]
+}
