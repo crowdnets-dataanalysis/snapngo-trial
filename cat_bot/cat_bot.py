@@ -43,10 +43,13 @@ slack_event_adapter = SlackEventAdapter(os.environ['CAT_BOT_SIGNING_SECRET'], '/
 # Define the client obj
 client = WebClient(token=os.environ['CAT_BOT_TOKEN'])
 
+client2 = app.client.apps_connections_open(token=os.environ['CAT_BOT_TOKEN'])
 # Send a message from this Bot to specified channel (when this file is run)
 # client.chat_postMessage(channel='#bot-testing', text=f'From SQL database: {output}!')
 
-@ slack_event_adapter.on('message')
+
+
+@ slack_event_adapter.on('reaction_added')
 def message(payload):
     """
     Takes the response from a message sent in any chat in which this Bot has
@@ -54,6 +57,9 @@ def message(payload):
     When on, constantly listens for new messages, the responds as dictated below.
     Returns nothing.
     """
+    print('REACTIONS!')
+    print(payload)
+
     # Recieve payload
     event = payload.get('event', {})
     channel_id = event.get('channel')
@@ -66,7 +72,7 @@ def message(payload):
     if text == "hi":
         client.chat_postMessage(channel=channel_id,text="Meow! I'm a cat!")
     
-    elif 'cat' in text:
+    elif text == 'cat':
         print("--  cat in text!!")
         try:
             # Get cat-specific info
