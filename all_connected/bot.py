@@ -14,11 +14,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 import pymysql
 import json
+import requests
 
 from slack_sdk import WebClient
 from flask import Flask
 from slackeventsapi import SlackEventAdapter
 from slack_sdk.errors import SlackApiError
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 
 # setting up .env path
@@ -28,6 +31,7 @@ load_dotenv(dotenv_path=env_path)
 # Create flask app
 app = Flask(__name__)
 slack_event_adapter = SlackEventAdapter(os.environ['CAT_BOT_SIGNING_SECRET'], '/slack/events', app)
+#bolt = App(token=os.environ.get("CAT_BOT_TOKEN"))
 
 # Define the client obj
 client = WebClient(token=os.environ['CAT_BOT_TOKEN'])
@@ -63,7 +67,6 @@ def generateMessage(assignList):
     json block message.
     Return the block message
     '''
-    #reply = {'text': "Here are your newly generated tasks"}
     block = []
     for taskInfo in assignList:
         print("TASK_INFO")
@@ -106,8 +109,6 @@ def generateMessage(assignList):
                 "block_id": str(taskInfo[0])
             }
         )
-    #reply['blocks'] = block
-    #print(reply)
     return block
 
 def sendTasks(assignmentsDict):
@@ -123,7 +124,7 @@ def sendTasks(assignmentsDict):
             try:
                 reply = generateMessage(assignmentsDict[user_id])
                 texts = "Here are your newly generated tasks"
-                client.chat_postMessage(channel=f'@{user_id}', text = texts, blocks = reply)
+                client.chat_postMessage(channel=f"@{user_id}", text = texts, blocks = reply)
             except SlackApiError as e:
                 # You will get a SlackApiError if "ok" is False
                 assert e.response["ok"] is False
@@ -184,40 +185,10 @@ def message(payload):
                                     }
                                 ],
                                 "block_id": "task1"
-                            },
-                            {
-                                "type": "section",
-                                "text": {
-                                    "type": "mrkdwn",
-                                    "text": "This is task2"
-                                }
-                            },
-                            {
-                                "type": "actions",
-                                "elements": [
-                                    {
-                                        "type": "button",
-                                        "text": {
-                                            "type": "plain_text",
-                                            "text": "Accept",
-                                        },
-                                        "value": "accept"
-                                    },
-                                    {
-                                        "type": "button",
-                                        "text": {
-                                            "type": "plain_text",
-                                            "text": "Reject",
-                                        },
-                                        "value": "reject"
-                                    }
-                                ],
-                                "block_id": "task2"
                             }
-                        
-                        ]
+                ]  
                 
-                client.chat_postMessage(channel=f'@{user_id}', blocks = reply)
+                client.chat_postMessage(channel=f"@{user_id}", blocks = reply)
             except SlackApiError as e:
                 # You will get a SlackApiError if "ok" is False
                 assert e.response["ok"] is False
@@ -225,7 +196,21 @@ def message(payload):
                 assert e.response["error"]
                 print(f"Got an error: {e.response['error']}")
 
+def getPic(url, token, user_id, task_id):
+    '''
+    Takes   url: from payload['event']['files'][0]['url_private_download']
+            token: the bot token
+            user_id: the user who sent the picture
+            task_id: the task they are trying to finish, should be payload['event']['text']
+    Downloads picture with the given download url and saves it in the given path
+    '''
+    r = requests.get(url, headers={'Authorization': 'Bearer %s' % token})
+    dateTime = 0 # switch to clock
+    filename = f"../../snapngo_pics/{user_id}_{task_id}_{dateTime}.jpeg"
+    open(filename, 'wb').write(r.content)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+    #SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()
+

@@ -24,7 +24,7 @@ app = App(
 
 
 flask_app = Flask(__name__)
-
+assignment_objs = {}
 
 # SlackRequestHandler translates WSGI requests to Bolt's interface
 # and builds WSGI response from Bolt's response.
@@ -96,7 +96,7 @@ def generate_message(assign_list):
                             "text": "Accept",
                         },
                         "value": "accepted",
-                        "action_id": "accepted"
+                        "action_id": "button_click"
                     },
                     {
                         "type": "button",
@@ -105,7 +105,7 @@ def generate_message(assign_list):
                             "text": "Reject",
                         },
                         "value": "rejected",
-                        "action_id": "rejected"
+                        "action_id": "button_click"
                     }
                 ],
                 "block_id": str(task_info[0])
@@ -125,6 +125,7 @@ def send_tasks(assignments_dict):
         if BOT_ID != user_id:    
             try:
                 reply = generate_message(assignments_dict[user_id])
+                print(reply)
                 texts = "Here are your newly generated tasks"
                 client.chat_postMessage(channel=f"@{user_id}", text = texts, blocks = reply)
             except SlackApiError as e:
@@ -225,7 +226,7 @@ def action_button_click(body, ack, say):
     # Acknowledge the action
     ack()
     action = body['actions'][0]
-    status = action['value']
+    new_status = action['value']
     task = int(action['block_id'])
     user = str(body['user']['id'])
     messenger.update_assign_status(status, task, user)
@@ -237,12 +238,12 @@ def action_button_click(body, ack, say):
     # Acknowledge the action
     ack()
     action = body['actions'][0]
-    status = action['value']
+    new_status = action['value']
     task = int(action['block_id'])
     user = str(body['user']['id'])
+    old_status = 0
     messenger.update_assign_status(status, task, user)
     say(f"<@{user}> rejected task {task}")
-
 
 
 # Start your app

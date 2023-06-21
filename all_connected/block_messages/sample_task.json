@@ -1,0 +1,38 @@
+{
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Are you trying to submit to a Task? Please follow the below directions: *\n    *1.* Complete the task's objective \n    *2.* Go to the @TaskBot DM channel here on Slack \n    *3.* Type the task number & attach that task's image (see below)\n"
+			}
+		},
+		{
+			"type": "image",
+			"title": {
+				"type": "plain_text",
+				"text": "image1",
+				"emoji": true
+			},
+			"image_url": "https://i.imgur.com/Dxij9Po.jpg",
+			"alt_text": "image1"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "\n.  *4.* Send the message!\n    *5.* We'll check the task & send back a confirmation of completion \n            •  This step may take a few minutes"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "🌸 *Reply '?' to see more info* 🌸"
+			}
+		}
+	]
+}

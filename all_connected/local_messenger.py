@@ -9,6 +9,7 @@ run this file in another terminal
 """
 import os
 import testbot
+# import local_testbot
 import helper_functions
 from pathlib import Path
 from dotenv import load_dotenv
@@ -30,20 +31,19 @@ client = WebClient(token=os.environ['CAT_BOT_TOKEN'])
 # Get the bot id
 BOT_ID = client.api_call("auth.test")['user_id']
 db_name = "test1" # needs to be changed. future: get var value from connections.py
-info_page = "INFO"
-sample_task = "If you are trying to finish a task, please send in task#+picture formate as shown below:"
 
-def get_all_users_info():
-    return testbot.get_all_users_info()
 
-def add_users():
+# def get_all_users_info():
+#     return local_testbot.get_all_users_info()
+
+def add_users(user_store):
     '''
     Gets teh database connection. Returns nothing.
     Add users to the database based on the current list of users in the the workplace 
     '''
     conn = helper_functions.connectDB(db_name)
     cur = conn.cursor()
-    user_store = get_all_users_info()
+    # user_store = get_all_users_info()
     query1 = '''SELECT id FROM users'''
     cur.execute(query1)
     existing_ids = cur.fetchall()
@@ -67,7 +67,23 @@ def update_tasks_expired():
     conn.commit()
     conn.close
 
-def get_assignments():
+def get_task_list(user_id, task_id):
+    conn = helper_functions.connectDB(db_name)
+    cur = conn.cursor()
+    #print("finished1")
+    query = f'''SELECT assignments.taskID, assignments.userID, 
+                tasks.location, tasks.description, tasks.starttime, tasks.time_window, 
+                tasks.compensation
+                FROM assignments INNER JOIN tasks ON assignments.taskID = tasks.id
+                WHERE (assignments.taskID = {task_id} AND assignments.userID = '{user_id}')'''
+    cur.execute(query)
+    assignment = cur.fetchone()
+    print("ASSSIGN", assignment)
+    conn.close()
+    return assignment
+
+
+def get_assignments(db_name):
     '''
     Get all the assignments with status 'not assigned' together with each task's details. 
     Create a dictionary with keys being user ids and values being a list of tasks (with
@@ -131,8 +147,8 @@ def update_assign_status(status, task_id, user_id):
     conn.commit()
     conn.close
 
-def send_tasks(assign_dict):
-    testbot.send_tasks(assign_dict)
+def send_tasks(assign_dict, assignment_objs):
+    local_testbot.send_tasks(assign_dict, assignment_objs)
     update_assign_status("pending", 0, 0)
 
 def get_assigned_tasks(user):
@@ -174,7 +190,5 @@ def submit_task(user_id, task_id, path):
 
 
 if __name__ == "__main__":
-    #addUsers()
-    assign_dict = get_assignments()
-    send_tasks(assign_dict)
-    #print(get_assigned_tasks("U05B24S3LR1"))
+    pass
+
