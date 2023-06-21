@@ -1,0 +1,25 @@
+{     
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Accept"
+                    },
+                    "style": "primary",
+                    "value": "accepted",
+                    "action_id": "accepted"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Reject"
+                    },
+                    "value": "rejected",
+                    "action_id": "rejected"
+                }                    
+            ],
+            "block_id": str(task_id)
+        }

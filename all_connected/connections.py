@@ -14,14 +14,14 @@ import time
 
 
 ### ### Control Center ### ###
-DB_NAME = 'test1'
+DB_NAME = 'snapngo_test'
 
-TASK_CYCLE = 5
+TASK_CYCLE = 2
 NUM_TASKS_PER_CYCLE = 3
 
-MATCHING_CYCLE = 6
+MATCHING_CYCLE = 3
 
-MESSENGER_CYCLE = 15
+MESSENGER_BOT_CYCLE = 5
 
 
 
@@ -30,8 +30,9 @@ MESSENGER_CYCLE = 15
 def task_call():
     """Takes & returns nothing. Container for task call timer."""
     task.generate_tasks(NUM_TASKS_PER_CYCLE, DB_NAME)
+    print('- tasks generated')
 
-task_timer = helper_functions.RepeatTimer(task_call,2)
+task_timer = helper_functions.RepeatTimer(task_call, TASK_CYCLE)
 
 
 ### ### Matching Algorithm & Assignments call ### ###
@@ -39,52 +40,41 @@ task_timer = helper_functions.RepeatTimer(task_call,2)
 def match_call():
     """Takes & returns nothing. Container for match call timer."""
     matching_assignments.match_users_and_tasks(matching_assignments.algorithm_random, DB_NAME)
-    print("tasks matched")
+    print("- tasks matched")
 
 
 match_timer = helper_functions.RepeatTimer(match_call,
-                                seconds=10,
+                                seconds=MATCHING_CYCLE,
                                 minutes=0,
                                 hours=0)
 
 
 ### ### MESSENGER call ### ###
-# Sends out tasks & uodates recommendTime in 'assignments' table
-unassigned_info = [0]
-# print("unassigned_info: '', ", unassigned_info)
-def messenger_call():
+# Sends out tasks & updates recommendTime in 'assignments' table
+def messenger_bot_call():
     """Takes & returns nothing. Container for messenger timer."""
-    unassigned_info[0] = messenger.getAssignments(DB_NAME)
-    print("get unassigned tasks: ", unassigned_info)
+    assign_dict = messenger.get_assignments(DB_NAME)
+    bot.send_tasks(assign_dict)
+    print('- sent tasks')
+    messenger.update_assign_status("pending", 0, 0)
 
 
-messenger_timer = helper_functions.RepeatTimer(messenger_call,
-                                seconds=10,
+messenger_timer = helper_functions.RepeatTimer(messenger_bot_call,
+                                seconds=MESSENGER_BOT_CYCLE,
                                 minutes=0,
                                 hours=0)
 
 
-### ### BOT call ### ###
-# Sends tasks to users over Slack
-def bot_call():
-    """Takes & returns nothing. Container for bot timer."""
-    print("unassigned_info: ", unassigned_info[0])
-    bot.sendTasks(unassigned_info[0])
+if __name__ == "__main__":
+    # Start all cycles
+    task_timer.start()
+    match_timer.start()
+    messenger_timer.start()
 
-bot_timer = helper_functions.RepeatTimer(bot_call,
-                                seconds=10,
-                                minutes=0,
-                                hours=0)
+    # Run time
+    time.sleep(6)
 
-
-
-task_timer.start()
-match_timer.start()
-messenger_timer.start()
-bot_timer.start()
-
-time.sleep(2)
-task_timer.cancel()
-match_timer.cancel()
-messenger_timer.cancel()
-bot_timer.cancel()
+    # End all cycles
+    task_timer.cancel()
+    match_timer.cancel()
+    messenger_timer.cancel()

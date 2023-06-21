@@ -1,0 +1,24 @@
+{     
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Accept"
+                    },
+                    "value": "accepted",
+                    "action_id": "accepted"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Reject"
+                    },
+                    "value": "rejected",
+                    "action_id": "rejected"
+                }                    
+            ],
+            "block_id": "PLACEHOLDER_task_id"
+        }
