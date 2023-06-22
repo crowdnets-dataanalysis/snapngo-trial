@@ -1,0 +1,55 @@
+{
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Welcome to the Snap N Go beta test! :wave:"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Thank you for helping us Beta Test! Snap N Go is a system that will assign you small tasks throughout the day that, in the offical run, you can get paid for successfully completing. But unfortunately, we can't compensate you during this beta test period. \n\n *Each Task* will have:\n      •  *Start Time:* when the task starts\n      •  *Window:* how long the task will be open for\n      •  *Description:* what this task entails\n      •  *Compensation ✨:* the money you'll get for successfully completing this task!\n\n This bot will periodically send you tasks through your DMs for you to either accept or reject."
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Submitting to a Task:*\n    *1.* Complete the task's objective \n    *2.* Go to the @TaskBot DM channel here on Slack \n    *3.* Type the task number & attach that task's image (see below)\n"
+			}
+		},
+		{
+			"type": "image",
+			"title": {
+				"type": "plain_text",
+				"text": "image1",
+				"emoji": true
+			},
+			"image_url": "https://i.imgur.com/Dxij9Po.jpg",
+			"alt_text": "image1"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "\n.  *4.* Send the message!\n    *5.* We'll check the task & send back a confirmation! \n            •  This step may take a few minutes"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Type and send `?` or `help` to see this information again or for  information about *receiving tasks*, *accepting/rejecting tasks*, other *questions*, or *reporting a bug/recommendation*.\n\n Thank you again for being part of the Snap N Go beta test! We'll send you your first tasks soon!"
+			}
+		}
+	]
+}
