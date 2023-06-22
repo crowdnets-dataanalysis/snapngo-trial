@@ -45,5 +45,4 @@ CREATE TABLE IF NOT EXISTS assignments (
 )
 ENGINE = InnoDB;
 
-ALTER TABLE tasks ADD COLUMN starttime DATETIME;
     
