@@ -92,6 +92,7 @@ def algorithm_random(assignment_data, task_data, user_data):
     matchings = []
     for task_id in task_data:
         # Subtract all previously-assigned users from overall user pool
+        print(user_data)
         available_user_ids = set(user_data['id']) - task_users_dict.get(task_id, set())
 
         # Assign & note matching
@@ -128,11 +129,12 @@ def match_users_and_tasks(matching_algo, db_name):
     unassigned_tasks = set([tasks[0] for tasks in cursor.fetchall()])
 
     # Use the given Matching Algorithm to match users to unassigned tasks
-    task_user_matchings = matching_algo(assignment_data, unassigned_tasks, user_data)
+    if user_data:
+        task_user_matchings = matching_algo(assignment_data, unassigned_tasks, user_data)
 
-    # Generate Assignments & insert them into the Assignments table
-    all_assignments = [{'task_id': task_id, 'user_id': user_id} for task_id, user_id in task_user_matchings]
-    insert_assignments(all_assignments, db)
+        # Generate Assignments & insert them into the Assignments table
+        all_assignments = [{'task_id': task_id, 'user_id': user_id} for task_id, user_id in task_user_matchings]
+        insert_assignments(all_assignments, db)
 
     # Close database connection
     db.close()
@@ -140,4 +142,4 @@ def match_users_and_tasks(matching_algo, db_name):
 
 
 if __name__ == '__main__':
-    match_users_and_tasks(algorithm_random, 'snapngo_test')
+    match_users_and_tasks(algorithm_random, 'snapngo_db')

@@ -8,15 +8,17 @@ import messenger
 
 import json
 import requests
+import copy
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_bolt.adapter.flask import SlackRequestHandler
+from datetime import date
 
 
 ### ### CONSTANTS ### ###
-DB_NAME = 'snapngo_test'
+DB_NAME = 'snapngo_db'
 
 
 ## ### LOAD IN MESSAGE BLOCKS ### ###
@@ -94,16 +96,19 @@ def button_color(task_id, user_id):
     """
     status = messenger.get_assign_status(task_id, user_id)
     if status == "rejected": # Reject btn is red
-        block = default_btn.copy()
+        block = copy.deepcopy(default_btn)
         block['elements'][1]['style'] = 'danger'
         block['block_id'] = str(task_id)
     elif status == "accepted": # Accept btn is green
-        block = default_btn.copy()
+        print('accepted')
+        block = copy.deepcopy(default_btn)
         block['elements'][0]['style'] = 'primary'
         block['block_id'] = str(task_id)
     else: # both buttons grey
-        block = default_btn.copy()
+        block = copy.deepcopy(default_btn)
         block['block_id'] = str(task_id)
+    print("BUTTON BLOCK:")
+    print(block)
     return block
 
 
@@ -140,8 +145,8 @@ def get_pic(url, token, user_id, task_id):
     Downloads picture with the given download url and saves it in the given path
     '''
     r = requests.get(url, headers={'Authorization': 'Bearer %s' % token})
-    date = date.today() # change to clock
-    filename = f"../../snapngo_pics/{user_id}_{task_id}_{date}.jpeg"
+    datetime = date.today() # change to clock
+    filename = f"../../snapngo_pics/{user_id}_{task_id}_{datetime}.jpeg"
     open(filename, 'wb').write(r.content)
     return filename
 
@@ -173,6 +178,7 @@ def handle_message(payload, say):
         else:
             # User attaches more than one image
             print("text+img")
+            print(payload['files'])
             if len(payload['files']) > 1: 
                 say("You are attaching more than one file.")
                 say(info_page)
@@ -186,12 +192,15 @@ def handle_message(payload, say):
                 return
             task_id = int(payload['text'])
             say(f"<@{user_id}> is trying to finish task {task_id}")
-            task_list = messenger.get_assigned_tasks(user_id)
+            task_list = messenger.get_accepted_tasks(user_id)
+            pending_tasks = messenger.get_pending_tasks(user_id)
 
             # The text the user enters isn't any of their assigned task numbers
             if task_id not in task_list: 
-                say(f"You were not assigned to task {task_id}")
-                say(f"Your assigned tasks are {task_list}")
+                say(f"Task {task_id} is not one of your accepted tasks. Your accepted tasks are {task_list}")
+                if task_id in pending_tasks:
+                    say(f"However, task {task_id} is one of your pending tasks. You can still complete the task\
+                        by pressing the Accept button for task {task_id} and then submit your picture.")
                 return
             else:
                 url = file['url_private_download']

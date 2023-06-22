@@ -10,7 +10,7 @@ run this file in another terminal
 import helper_functions
 
 ### ### CONSTANTS ### ###
-DB_NAME = "test1" 
+DB_NAME = "snapngo_db" 
 
 
 def add_users(user_store):
@@ -124,7 +124,7 @@ def update_assign_status(status, task_id, user_id):
     conn.commit()
     conn.close
 
-def get_assigned_tasks(user_id) -> list:
+def get_accepted_tasks(user_id) -> list:
     """
     Takes a user id (int)
     Finds that user's assignment data.
@@ -133,7 +133,23 @@ def get_assigned_tasks(user_id) -> list:
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
     query = f'''SELECT task_id FROM assignments 
-                WHERE user_id = '{user_id}'
+                WHERE user_id = '{user_id}' AND `status` = 'accepted'
+            '''
+    cur.execute(query)
+    task_list = [item[0] for item in cur.fetchall()]
+    conn.close()
+    return task_list
+
+def get_pending_tasks(user_id) -> list:
+    """
+    Takes a user id (int)
+    Finds that user's assignment data.
+    
+    """
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = f'''SELECT task_id FROM assignments 
+                WHERE user_id = '{user_id}' AND `status` = 'pending'
             '''
     cur.execute(query)
     task_list = [item[0] for item in cur.fetchall()]
@@ -150,7 +166,7 @@ def submit_task(user_id, task_id, path):
         query = f'''UPDATE assignments 
                     INNER JOIN users ON assignments.user_id = users.id
                     INNER JOIN tasks ON assignments.task_id = tasks.id
-                SET assignments.img = '{path}', assignments.submission_time = NOW(),
+                SET assignments.img = '{path}', assignments.`submission_time` = NOW(),
                     users.compensation = users.compensation+ tasks.compensation
                 WHERE (assignments.user_id = '{user_id}' 
                     AND assignments.task_id = {task_id})

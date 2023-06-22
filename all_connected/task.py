@@ -58,12 +58,15 @@ def insert_tasks(db, tasks_list, start_times):
     """
     # Connect to database & a cursor object
     cursor = db.cursor()
-
+    cursor.execute("SHOW COLUMNS FROM tasks FROM snapngo_db")
+    columns = cursor.fetchall()
     for i, task in enumerate(tasks_list):
+        print("start time type:", type(start_times[i]))
         # Create & execute query
-        query = f"INSERT INTO Tasks(location, time_window, compensation, expired, description, start_time) \
-            VALUES('{task['location']}', {task['time_window']}, {task['compensation']}, \
-                {task['expired']}, '{task['description']}', '{start_times[i]}')"
+        query = f"INSERT INTO tasks (`location`, time_window, compensation, expired, `description`, start_time) \
+                    VALUES ('{task['location']}', {task['time_window']}, {task['compensation']}, \
+                    {task['expired']}, '{task['description']}', '{start_times[i]}')"
+        
         cursor.execute(query)
 
         # Commit the changes to the database
@@ -80,7 +83,9 @@ def generate_tasks(num_tasks, db_name):
     Returns nothing.
     """
     # Open database connection
-    db = helper_functions.connectDB(db_name);
+    db = helper_functions.connectDB(db_name)
+
+
 
     # Get matrix representation of graph and dictionary of vertex indices & locations
     with open('data/task_locations.json', 'r') as infile:
@@ -98,4 +103,4 @@ def generate_tasks(num_tasks, db_name):
 
 
 if __name__ == '__main__':
-    generate_tasks(3, 'snapngo_test')
+    generate_tasks(3, 'snapngo_db')

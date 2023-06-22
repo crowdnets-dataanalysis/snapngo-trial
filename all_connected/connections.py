@@ -14,7 +14,7 @@ import time
 
 
 ### ### Control Center ### ###
-DB_NAME = 'snapngo_test'
+DB_NAME = 'snapngo_db'
 
 TASK_CYCLE = 2
 NUM_TASKS_PER_CYCLE = 3
@@ -66,6 +66,8 @@ messenger_timer = helper_functions.RepeatTimer(messenger_bot_call,
 
 
 if __name__ == "__main__":
+    user_store = bot.get_all_users_info()
+    messenger.add_users(user_store)
     # Start all cycles
     task_timer.start()
     match_timer.start()
