@@ -180,49 +180,53 @@ def handle_message(payload, say):
             print("text+img")
             print(payload['files'])
             if len(payload['files']) > 1: 
-                say("You are attaching more than one file.")
-                say(info_page)
+                say("*:large_orange_circle: You are attaching more than one file.* Reply `?` for more information.")
                 return
 
             # User attaches a file that is not an image
             file = payload['files'][0]
             if "image" not in file['mimetype']: 
-                say("The file you attached is not an image.")
-                say(info_page)
+                say("*:large_orange_circle: The file you attached is not an image.*\n Reply `?` for more information.")
                 return
-            task_id = int(payload['text'])
+            task_id = payload['text']
+            if not task_id.isdigit():
+                say(":large_orange_circle: Please include *only the task number* in the text & attach that tasks's image.")
+                return
+            task_id = int(task_id)
             say(f"<@{user_id}> is trying to finish task {task_id}")
-            task_list = messenger.get_accepted_tasks(user_id)
+            accepted_tasks = messenger.get_accepted_tasks(user_id)
             pending_tasks = messenger.get_pending_tasks(user_id)
-
+            print("TASK LIST", accepted_tasks)
+            print("PENDING TASKS", pending_tasks)
             # The text the user enters isn't any of their assigned task numbers
-            if task_id not in task_list: 
-                say(f"Task {task_id} is not one of your accepted tasks. Your accepted tasks are {task_list}")
+            if task_id not in accepted_tasks: 
+                print("TASK ID", task_id)
+                say(f":large_orange_circle: Task {task_id} is not one of your accepted tasks. Your accepted tasks are {accepted_tasks}")
                 if task_id in pending_tasks:
-                    say(f"However, task {task_id} is one of your pending tasks. You can still complete the task\
-                        by pressing the Accept button for task {task_id} and then submit your picture.")
+                    say(f'''However, task {task_id} is one of your pending tasks. You can still complete the task by pressing the Accept button for task {task_id} and then submit your picture.''')
                 return
             else:
-                url = file['url_private_download']
-                path = get_pic(url, os.environ['CAT_BOT_TOKEN'], user_id, task_id)
-                if messenger.submit_task(user_id, task_id, path):
-                    say(f"<@{user_id}> finished task {task_id}")
+                if messenger.check_time_window(task_id) == "expired":
+                    say(f''':large_orange_circle: Task {task_id} has already expired. Please pick another assigned task to finish.''')
+                elif messenger.check_time_window(task_id) == "not started":
+                    say(f''':large_orange_circle: Task {task_id} has not started yet. Please check the time window and finish this task later.''')
                 else:
-                    say(f'''Task {task_id} has already expired. 
-                            Please pick another assigned task to finish.''')
-
+                    url = file['url_private_download']
+                    path = get_pic(url, os.environ['CAT_BOT_TOKEN'], user_id, task_id)
+                    if messenger.submit_task(user_id, task_id, path):
+                        say(f"<@{user_id}> finished task {task_id}")
             #update database if image is NULL
         return #needs to be changed
 
 
 @app.event("message")
-def handle_message_events(body, logger):
+def handle_message_events(body, logger, say):
     '''
     When user only send a picture without text
     '''
     logger.info(body)
     user = body['event']['user']
-    client.chat_postMessage(channel=f"@{user}",text= "SAMPLE TASK")
+    say(sample_task)
 
 
 @app.event("file_shared")

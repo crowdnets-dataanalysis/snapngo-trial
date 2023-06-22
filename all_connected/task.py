@@ -11,7 +11,7 @@ import pandas as pd
 
 
 START_HOURS = time(10,00) # 10am
-END_HOURS = time(16,00) # 4pm
+END_HOURS = time(18,00) # 4pm
 
 ### ### HELPER FUNCTIONS ### ###
 def random_datetime(n):

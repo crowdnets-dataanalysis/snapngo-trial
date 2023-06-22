@@ -16,7 +16,7 @@ from threading import Timer
 from datetime import datetime, time
 
 START_HOURS = time(10,00)
-END_HOURS = time(16,00)
+END_HOURS = time(18,00)
 
 def connectDB(dbName):
     """

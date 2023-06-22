@@ -156,13 +156,28 @@ def get_pending_tasks(user_id) -> list:
     conn.close()
     return task_list
 
+def check_time_window(task_id):
+    update_tasks_expired()
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    cur.execute(f"SELECT expired, (start_time<NOW()) FROM tasks WHERE id = {task_id}")
+    timing = cur.fetchone()
+    expired = timing[0]
+    started = timing[1]
+    if expired == 1:
+        return "expired"
+    elif started == 0:
+        return "not started"
+
 def submit_task(user_id, task_id, path):
     update_tasks_expired()
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
-    cur.execute(f"SELECT expired FROM tasks WHERE id = {task_id}")
-    expired = cur.fetchone()[0]
-    if expired == 0:
+    cur.execute(f"SELECT expired, (start_time<NOW()) FROM tasks WHERE id = {task_id}")
+    timing = cur.fetchone()
+    expired = timing[0]
+    started = timing[1]
+    if expired == 0 and started == 1:
         query = f'''UPDATE assignments 
                     INNER JOIN users ON assignments.user_id = users.id
                     INNER JOIN tasks ON assignments.task_id = tasks.id
