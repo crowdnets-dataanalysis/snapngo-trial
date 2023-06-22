@@ -94,15 +94,16 @@ def button_color(task_id, user_id):
     """
     status = messenger.get_assign_status(task_id, user_id)
     if status == "rejected": # Reject btn is red
-        block = default_btn.copy
-        block['elements'][1]['stype'] = 'danger'
+
+        block = default_btn.copy()
+        block['elements'][1]['style'] = 'danger'
         block['block_id'] = str(task_id)
     elif status == "accepted": # Accept btn is green
-        block = default_btn.copy
-        block['elements'][0]['stype'] = 'primary'
+        block = default_btn.copy()
+        block['elements'][0]['style'] = 'primary'
         block['block_id'] = str(task_id)
     else: # both buttons grey
-        block = default_btn.copy
+        block = default_btn.copy()
         block['block_id'] = str(task_id)
     return block
 
