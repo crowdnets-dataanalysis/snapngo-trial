@@ -77,6 +77,7 @@
 					},
 					"style": "primary",
 					"value": "bugs_form",
+					"action_id": "bugs_form",
 					"url": "https://forms.gle/1yR72MVU2XgHXk1T6"
 				}
 			]

@@ -70,9 +70,9 @@ def generate_message(task_info, user_id):
     Return the block message
     '''
     block = []
-    text = (f"Task # {task_info[0]} \nLocation: {task_info[2]} \n" + 
-            "Description: {task_info[3]}\n Start Time: {task_info[4]} \n" + 
-            "Window: {task_info[5]} \n Compensation: {task_info[6]}")
+    text = (f"*Task # {task_info[0]}*,Location: {task_info[2]} \n" + 
+            f"Description: {task_info[3]}\n Start Time: {task_info[4]} \n" + 
+            f"Window: {task_info[5]} \n Compensation: {task_info[6]}")
 
     description = {
                 "type": "section",
@@ -94,15 +94,15 @@ def button_color(task_id, user_id):
     """
     status = messenger.get_assign_status(task_id, user_id)
     if status == "rejected": # Reject btn is red
-        block = default_btn.copy
-        block['elements'][1]['stype'] = 'danger'
+        block = default_btn.copy()
+        block['elements'][1]['style'] = 'danger'
         block['block_id'] = str(task_id)
     elif status == "accepted": # Accept btn is green
-        block = default_btn.copy
-        block['elements'][0]['stype'] = 'primary'
+        block = default_btn.copy()
+        block['elements'][0]['style'] = 'primary'
         block['block_id'] = str(task_id)
     else: # both buttons grey
-        block = default_btn.copy
+        block = default_btn.copy()
         block['block_id'] = str(task_id)
     return block
 
@@ -165,25 +165,31 @@ def handle_message(payload, say):
     # Handle certain responses
     if BOT_ID != user_id:
         if 'files' not in payload:
-            if text.strip() == "?":
+            if text.strip() == "?" or text.strip() == 'help':
                 say(info_page)
-            else:          #user only sends text without attaching an image
+            # User only sends text without attaching an image
+            else:          
                 say(sample_task)
         else:
+            # User attaches more than one image
             print("text+img")
-            if len(payload['files']) > 1: #user attaches more than one image
+            if len(payload['files']) > 1: 
                 say("You are attaching more than one file.")
                 say(info_page)
                 return
+
+            # User attaches a file that is not an image
             file = payload['files'][0]
-            if "image" not in file['mimetype']: #user attaches a file that is not an image
+            if "image" not in file['mimetype']: 
                 say("The file you attached is not an image.")
                 say(info_page)
                 return
             task_id = int(payload['text'])
             say(f"<@{user_id}> is trying to finish task {task_id}")
             task_list = messenger.get_assigned_tasks(user_id)
-            if task_id not in task_list: #the text the user enters isn't any of their assigned task numbers
+
+            # The text the user enters isn't any of their assigned task numbers
+            if task_id not in task_list: 
                 say(f"You were not assigned to task {task_id}")
                 say(f"Your assigned tasks are {task_list}")
                 return
@@ -248,16 +254,16 @@ def action_button_click(body, ack, say):
 def action_button_click(body, ack, say):
     # Acknowledge the action
     ack()
-    print("BUTTON CLICK")
-    # print(assignment_objs.keys())
-    # print(assignment_objs)
+
+    # Get task info 
     action = body['actions'][0]
     new_status = action['value']
     task = int(action['block_id'])
     user = str(body['user']['id'])
-    # print(assignment_objs)
     task_list = messenger.get_task_list(user, task)
     old_status = messenger.get_assign_status(task, user)
+    
+    # Change 
     if old_status == "pending":
         messenger.update_assign_status(new_status, task, user)
         # task_list = messenger.get
@@ -267,6 +273,12 @@ def action_button_click(body, ack, say):
     else:
         say(f"<@{user}> already {old_status} task {task}")
     return
+
+
+@app.action("bugs_form")
+def handle_some_action(ack, body, logger):
+    ack()
+    logger.info(body)
 
 
 if __name__ == "__main__":
