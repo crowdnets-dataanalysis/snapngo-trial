@@ -61,7 +61,7 @@ def insert_tasks(db, tasks_list, start_times):
 
     for i, task in enumerate(tasks_list):
         # Create & execute query
-        query = f"INSERT INTO Tasks(location, time_window, compensation, expired, description, starttime) \
+        query = f"INSERT INTO Tasks(location, time_window, compensation, expired, description, start_time) \
             VALUES('{task['location']}', {task['time_window']}, {task['compensation']}, \
                 {task['expired']}, '{task['description']}', '{start_times[i]}')"
         cursor.execute(query)

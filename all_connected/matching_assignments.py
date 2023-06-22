@@ -44,7 +44,7 @@ def create_task_user_dict(assignment_data):
     Returns that dict.
     """
     # get [task_id, user_id] pairs
-    task_user_list = list(zip(assignment_data['taskID'], assignment_data['userID']))
+    task_user_list = list(zip(assignment_data['task_id'], assignment_data['user_id']))
     
     # map all user_ids (values) to task_id (key) 
     task_users_dict = {}
@@ -68,7 +68,7 @@ def insert_assignments(assignment_info, db):
 
     for assignment in assignment_info:
         # Create & execute query
-        query = f"INSERT INTO assignments(`taskID`, `userID`, `status`) VALUES \
+        query = f"INSERT INTO assignments(`task_id`, `user_id`, `status`) VALUES \
             ({assignment['task_id']}, '{assignment['user_id']}', 'not assigned');"
         cursor.execute(query)
 
@@ -120,11 +120,11 @@ def match_users_and_tasks(matching_algo, db_name):
 
     # Updates task expiration status
     cursor = db.cursor()
-    cursor.execute(f"UPDATE tasks SET expired = 1 WHERE starttime + INTERVAL time_window minute < now()")
+    cursor.execute(f"UPDATE tasks SET expired = 1 WHERE start_time + INTERVAL time_window minute < now()")
     
     # Identify unassigned tasks 
-    cursor.execute(f"SELECT tasks.id FROM tasks LEFT JOIN assignments ON tasks.id=assignments.taskID \
-                   WHERE expired = 0 AND tasks.id NOT IN (SELECT taskID from assignments)")
+    cursor.execute(f"SELECT tasks.id FROM tasks LEFT JOIN assignments ON tasks.id=assignments.task_id \
+                   WHERE expired = 0 AND tasks.id NOT IN (SELECT task_id from assignments)")
     unassigned_tasks = set([tasks[0] for tasks in cursor.fetchall()])
 
     # Use the given Matching Algorithm to match users to unassigned tasks
