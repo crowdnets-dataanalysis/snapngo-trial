@@ -5,16 +5,18 @@ Description: General helper functions & environment set up for the overall Snap 
 """
 import os
 from pathlib import Path
-import pymysql
 from dotenv import load_dotenv
-
-from flask import Flask
-from threading import Timer
-
-# setting up .env path (for keeping confidential data confidential)
 env_path = Path('..') / '.env'
 load_dotenv(dotenv_path=env_path)
 
+import pymysql
+from flask import Flask
+from threading import Timer
+
+from datetime import datetime, time
+
+START_HOURS = time(10,00)
+END_HOURS = time(16,00)
 
 def connectDB(dbName):
     """
@@ -68,18 +70,12 @@ class RepeatTimer(Timer):
         func()
 
     def run(self):
-        while not self.finished.wait(self.interval):
+        now = datetime.now()
+        not_weekend = now.strftime("%A").lower() not in {'saturday', 'sunday'}
+        during_workday = START_HOURS < now.time() < END_HOURS
+        while not self.finished.wait(self.interval) and not_weekend and during_workday:
             self.function(*self.args, **self.kwargs)
 
 
 if __name__ == '__main__':
-    import time
-    def t1():
-        print(1)
-        print(3)
-
-    timer = RepeatTimer(t1, 1)
-
-    timer.start()
-    time.sleep(6)
-    timer.cancel()
+    pass
