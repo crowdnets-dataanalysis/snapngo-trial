@@ -6,8 +6,12 @@ Description: All functions for the Task Generation Component.
 import random
 import json
 import helper_functions
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time, date
 import pandas as pd 
+
+
+START_HOURS = time(10,00) # 10am
+END_HOURS = time(16,00) # 4pm
 
 ### ### HELPER FUNCTIONS ### ###
 def random_datetime(n):
@@ -16,11 +20,28 @@ def random_datetime(n):
     Takes number of random dates to generate.
     Generates a random datetime with the limit specified below.
     Returns a random datetime.
-    """
-    # Define start/end times
-    start = datetime.now()
-    end = datetime.now() + timedelta(hours=5)
+    """    
+    # Get start times
+    now = datetime.strptime('2023-06-22 20:35:30', '%Y-%m-%d %H:%M:%S')
     
+    # If today's a weekend or after hours on friday -> start = next monday at start_hours
+    weekday = now.strftime("%A").lower()
+    if weekday in {'saturday', 'sunday'} or (weekday == 'friday' and now.time() > END_HOURS):
+        date = datetime.now() + timedelta(days=-now.date().weekday(), weeks=1) # next monday
+        start = datetime.combine(date, START_HOURS)   
+    # If weekday, but before 10am -> start = today at start_hours
+    elif now.time() < START_HOURS:
+        start = datetime.combine(date.date(), START_HOURS)
+    # If weekday, during hours -> start time = now
+    elif START_HOURS < now.time() < END_HOURS:
+        start = now
+    # If weekday (except friday), after hours -> start time = next day at start_hours
+    else:
+        start = datetime.combine((now + timedelta(hours=24)), START_HOURS)
+    
+    # Get end time
+    end = datetime.combine(start.date(), END_HOURS) + timedelta(hours=1)
+
     # Generate & choose n random dates
     dates = pd.date_range(start, end, freq='1min').to_series()
     date_sample = [str(date)[:-7] for date in dates.sample(5, replace=True).to_list()]
@@ -98,4 +119,5 @@ def generate_tasks(num_tasks, db_name):
 
 
 if __name__ == '__main__':
-    generate_tasks(3, 'snapngo_test')
+    res = random_datetime(7)
+    print(res)
