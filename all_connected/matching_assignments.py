@@ -92,7 +92,6 @@ def algorithm_random(assignment_data, task_data, user_data):
     matchings = []
     for task_id in task_data:
         # Subtract all previously-assigned users from overall user pool
-        print(user_data)
         available_user_ids = set(user_data['id']) - task_users_dict.get(task_id, set())
 
         # Assign & note matching
@@ -127,7 +126,6 @@ def match_users_and_tasks(matching_algo, db_name):
     cursor.execute(f"SELECT tasks.id FROM tasks LEFT JOIN assignments ON tasks.id=assignments.task_id \
                    WHERE expired = 0 AND tasks.id NOT IN (SELECT task_id from assignments)")
     unassigned_tasks = set([tasks[0] for tasks in cursor.fetchall()])
-
     # Use the given Matching Algorithm to match users to unassigned tasks
     if user_data:
         task_user_matchings = matching_algo(assignment_data, unassigned_tasks, user_data)

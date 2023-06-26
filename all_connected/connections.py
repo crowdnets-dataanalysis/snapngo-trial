@@ -16,12 +16,12 @@ import time
 ### ### Control Center ### ###
 DB_NAME = 'snapngo_db'
 
-TASK_CYCLE = 2
-NUM_TASKS_PER_CYCLE = 3
+TASK_CYCLE = 30*60
+NUM_TASKS_PER_CYCLE = messenger.get_total_users()*2
 
-MATCHING_CYCLE = 3
+MATCHING_CYCLE = TASK_CYCLE+2
 
-MESSENGER_BOT_CYCLE = 5
+MESSENGER_BOT_CYCLE = 60*60+3
 
 
 
@@ -68,13 +68,14 @@ messenger_timer = helper_functions.RepeatTimer(messenger_bot_call,
 if __name__ == "__main__":
     user_store = bot.get_all_users_info()
     messenger.add_users(user_store)
+    bot.send_welcome_message(user_store)
     # Start all cycles
     task_timer.start()
     match_timer.start()
     messenger_timer.start()
 
     # Run time
-    time.sleep(6)
+    time.sleep(30*60)
 
     # End all cycles
     task_timer.cancel()

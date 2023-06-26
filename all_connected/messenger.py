@@ -26,7 +26,7 @@ def add_users(user_store):
     existing_ids = cur.fetchall()
     existing_ids = [id[0] for id in existing_ids]
     #print(existing_ids)
-    query2 = '''INSERT INTO users (name, id) VALUES (%s, %s)'''
+    query2 = '''INSERT IGNORE INTO users (name, id) VALUES (%s, %s)'''
     for key in user_store:
         not_exist = key not in existing_ids
         not_bot = user_store[key]['is_bot'] == False
@@ -36,6 +36,26 @@ def add_users(user_store):
             cur.execute(query2, (name, key))
             conn.commit()
     conn.close()
+
+def get_total_users():
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = '''SELECT COUNT(id) FROM users'''
+    cur.execute(query)
+    total_users = cur.fetchone()[0]
+    return int(total_users)
+
+def get_account_info(user_id):
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = f"SELECT compensation FROM users WHERE id = '{user_id}'"
+    cur.execute(query)
+    compensation = cur.fetchone()[0]
+    query = f"SELECT task_id FROM assignments WHERE user_id = '{user_id}' and submission_time IS NOT NULL"
+    cur.execute(query)
+    tasks = [task[0] for task in cur.fetchall()]
+    return compensation, tasks
+
 
 def update_tasks_expired():
     conn = helper_functions.connectDB(DB_NAME)

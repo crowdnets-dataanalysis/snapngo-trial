@@ -44,8 +44,8 @@ def random_datetime(n):
 
     # Generate & choose n random dates
     dates = pd.date_range(start, end, freq='1min').to_series()
-    date_sample = [str(date)[:-7] for date in dates.sample(5, replace=True).to_list()]
-
+    date_sample = [str(date) for date in dates.sample(n, replace=True).to_list()]
+    #print(date_sample)
     return date_sample
 
 
@@ -81,8 +81,9 @@ def insert_tasks(db, tasks_list, start_times):
     cursor = db.cursor()
     cursor.execute("SHOW COLUMNS FROM tasks FROM snapngo_db")
     columns = cursor.fetchall()
+    #print("insert", start_times)
     for i, task in enumerate(tasks_list):
-        print("start time type:", type(start_times[i]))
+        #print("start time type:", type(start_times[i]))
         # Create & execute query
         query = f"INSERT INTO tasks (`location`, time_window, compensation, expired, `description`, start_time) \
                     VALUES ('{task['location']}', {task['time_window']}, {task['compensation']}, \

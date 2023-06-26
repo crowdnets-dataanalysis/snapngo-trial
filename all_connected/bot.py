@@ -60,6 +60,7 @@ def send_tasks(assignments_dict) -> None:
                     block = generate_message(task_info, user_id)
                     #texts = "Here are your newly generated tasks"
                     client.chat_postMessage(channel=f"@{user_id}", blocks = block,text="Sending tasks!")
+                    print("Send task!")
             except SlackApiError as e:
                 assert e.response["ok"] is False and e.response["error"], f"Got an error: {e.response['error']}"
 
@@ -107,11 +108,7 @@ def button_color(task_id, user_id):
     else: # both buttons grey
         block = copy.deepcopy(default_btn)
         block['block_id'] = str(task_id)
-    print("BUTTON BLOCK:")
-    print(block)
     return block
-
-
 
 def get_all_users_info() -> dict:
     '''
@@ -150,6 +147,20 @@ def get_pic(url, token, user_id, task_id):
     open(filename, 'wb').write(r.content)
     return filename
 
+def send_welcome_message(users_list):
+    '''
+    Takes   A list containing all user ids or a dictionary with user ids as its keys. 
+            currently using users_store returned by get_all_users_info()
+    
+    '''
+    for user_id in users_list:
+        print(f'IN Welcome: {user_id}')
+        if BOT_ID != user_id:   
+            try:
+                client.chat_postMessage(channel=f"@{user_id}", blocks = info_page, text="Welcome to Snap N Go!")
+                print("Welcome!")
+            except SlackApiError as e:
+                assert e.response["ok"] is False and e.response["error"], f"Got an error: {e.response['error']}"
 
 
 ### ### MESSAGE HANDLERS ### ###
@@ -170,9 +181,12 @@ def handle_message(payload, say):
     # Handle certain responses
     if BOT_ID != user_id:
         if 'files' not in payload:
-            if text.strip() == "?" or text.strip() == 'help':
+            if text.strip() == "?" or text.strip().lower() == 'help':
                 say(info_page)
             # User only sends text without attaching an image
+            elif text.strip().lower() == "account":
+                compensation, tasks = messenger.get_account_info(user_id)
+                say(f"You have completed tasks {tasks}, and have earned a total compensation of ${compensation}")
             else:          
                 say(sample_task)
         else:
@@ -193,14 +207,10 @@ def handle_message(payload, say):
                 say(":large_orange_circle: Please include *only the task number* in the text & attach that tasks's image.")
                 return
             task_id = int(task_id)
-            say(f"<@{user_id}> is trying to finish task {task_id}")
             accepted_tasks = messenger.get_accepted_tasks(user_id)
             pending_tasks = messenger.get_pending_tasks(user_id)
-            print("TASK LIST", accepted_tasks)
-            print("PENDING TASKS", pending_tasks)
             # The text the user enters isn't any of their assigned task numbers
             if task_id not in accepted_tasks: 
-                print("TASK ID", task_id)
                 say(f":large_orange_circle: Task {task_id} is not one of your accepted tasks. Your accepted tasks are {accepted_tasks}")
                 if task_id in pending_tasks:
                     say(f'''However, task {task_id} is one of your pending tasks. You can still complete the task by pressing the Accept button for task {task_id} and then submit your picture.''')
@@ -214,7 +224,7 @@ def handle_message(payload, say):
                     url = file['url_private_download']
                     path = get_pic(url, os.environ['CAT_BOT_TOKEN'], user_id, task_id)
                     if messenger.submit_task(user_id, task_id, path):
-                        say(f"<@{user_id}> finished task {task_id}")
+                        say(f"We received your submission to task {task_id}. Your compensation will be secured once we checked your submission. Reply `account` for more information on your account and completed tasks.")
             #update database if image is NULL
         return #needs to be changed
 
@@ -257,9 +267,9 @@ def action_button_click(body, ack, say):
         # task_list = messenger.get
         message = generate_message(task_list, user)
         client.chat_update(channel=body["channel"]["id"], ts = body["message"]["ts"], blocks = message,text="Accepted!")
-        say(f"<@{user}> {new_status} task {task}")
+        say(f"You {new_status} task {task}")
     else:
-        say(f"<@{user}> already {old_status} task {task}")
+        say(f"You already {old_status} task {task}")
     return
     
 
@@ -282,9 +292,9 @@ def action_button_click(body, ack, say):
         # task_list = messenger.get
         message = generate_message(task_list, user)
         client.chat_update(channel=body["channel"]["id"], ts = body["message"]["ts"], blocks = message,text="Rejected!")
-        say(f"<@{user}> {new_status} task {task}")
+        say(f"You {new_status} task {task}")
     else:
-        say(f"<@{user}> already {old_status} task {task}")
+        say(f"You already {old_status} task {task}")
     return
 
 
