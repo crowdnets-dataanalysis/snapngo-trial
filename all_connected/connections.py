@@ -80,8 +80,8 @@ def cancel_all_timers(task_timer, match_timer, messenger_timer):
     messenger_timer.cancel()
 
 def daily_cycle():
-    active_users = messenger.get_active_users_list()
-    for user_id in active_users:
+    all_users = messenger.get_all_users_list()
+    for user_id in all_users:
         messenger.update_account_status(user_id, "active")
     task_timer, match_timer, messenger_timer = start_all_timers()
     # Run time
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # Try implementing using schedule library
     #schedule.every().day.at("16:40").do(cancel_all_timers)
     # daily_cycle()
-    schedule.every().day.at("11:00").do(daily_cycle)
+    schedule.every().day.at("12:00").do(daily_cycle)
     while True:
         schedule.run_pending()
         time.sleep(1)

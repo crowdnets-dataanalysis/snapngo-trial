@@ -345,7 +345,7 @@ def handle_message(payload, say):
         else:
             # User attaches more than one image
             print("text+img", datetime.now())
-            print(payload['files'])
+            print(payload)
             if len(payload['files']) > 1: 
                 say("*:large_orange_circle: You are attaching more than one file.* Reply `?` for more information.")
                 return
@@ -355,7 +355,8 @@ def handle_message(payload, say):
             if "image" not in file['mimetype']: 
                 say("*:large_orange_circle: The file you attached is not an image.*\n Reply `?` for more information.")
                 return
-            task_id = payload['text']
+            task_id = payload['blocks'][0]['elements'][0]['elements'][0]['text']
+            print("TASK ID:", task_id)
             if not task_id.isdigit():
                 say(":large_orange_circle: Please include *only the task number* in the text & attach that tasks's image.")
                 return

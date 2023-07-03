@@ -48,6 +48,15 @@ def get_active_users_list():
     active_users = [user[0] for user in active_users_list]
     return active_users
 
+def get_all_users_list():
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = "SELECT id FROM users"
+    cur.execute(query)
+    all_users_list = cur.fetchall()
+    all_users = [user[0] for user in all_users_list]
+    return all_users
+
 def get_account_info(user_id):
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
