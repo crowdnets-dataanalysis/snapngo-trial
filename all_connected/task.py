@@ -10,8 +10,8 @@ from datetime import datetime, timedelta, time, date
 import pandas as pd 
 
 
-START_HOURS = time(10,00) # 10am
-END_HOURS = time(18,00) # 4pm
+START_HOURS = helper_functions.START_HOURS
+END_HOURS = helper_functions.END_HOURS
 
 ### ### HELPER FUNCTIONS ### ###
 def random_datetime(n):
@@ -22,7 +22,7 @@ def random_datetime(n):
     Returns a random datetime.
     """    
     # Get start times
-    now = datetime.strptime('2023-06-22 20:35:30', '%Y-%m-%d %H:%M:%S')
+    now = datetime.now()
     
     # If today's a weekend or after hours on friday -> start = next monday at start_hours
     weekday = now.strftime("%A").lower()

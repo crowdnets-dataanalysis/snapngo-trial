@@ -1,0 +1,36 @@
+{
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Task#24*, $COMP for successuful completion!\n    •  *Start Time:* STARTTIME\n    •  *Completion Window:* WINDOW minutes\n    •  *Task Description:* DESCRIPTION "
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "✅  Accept Task"
+					},
+					"style": "primary",
+					"value": "accept"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "❌  Reject Task"
+					},
+					"style": "danger",
+					"value": "reject"
+				}
+			]
+		}
+	]
+}

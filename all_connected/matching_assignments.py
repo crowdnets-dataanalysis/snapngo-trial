@@ -19,7 +19,10 @@ def read_table(db, table_name):
     """
     # Create Dict cursor object & fetch all data in the table
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    cursor.execute(f"SELECT * FROM {table_name};")
+    if table_name == 'users':
+        cursor.execute(f"SELECT * FROM {table_name} WHERE `status` = 'active';")
+    else:
+        cursor.execute(f"SELECT * FROM {table_name};")
     table_data = cursor.fetchall()
     
     # Returns {} if table is empty

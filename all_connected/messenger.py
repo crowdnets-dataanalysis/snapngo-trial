@@ -21,29 +21,32 @@ def add_users(user_store):
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
     # user_store = get_all_users_info()
-    query1 = '''SELECT id FROM users'''
-    cur.execute(query1)
-    existing_ids = cur.fetchall()
-    existing_ids = [id[0] for id in existing_ids]
-    #print(existing_ids)
-    query2 = '''INSERT IGNORE INTO users (name, id) VALUES (%s, %s)'''
+    query = '''INSERT IGNORE INTO users (name, id) VALUES (%s, %s)'''
     for key in user_store:
-        not_exist = key not in existing_ids
         not_bot = user_store[key]['is_bot'] == False
         not_slackbot = (key != 'USLACKBOT')
-        if not_exist and not_bot and not_slackbot:
+        if not_bot and not_slackbot:
             name = user_store[key]['name']
-            cur.execute(query2, (name, key))
+            cur.execute(query, (name, key))
             conn.commit()
     conn.close()
 
 def get_total_users():
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
-    query = '''SELECT COUNT(id) FROM users'''
+    query = "SELECT COUNT(id) FROM users WHERE `status` = 'active'"
     cur.execute(query)
     total_users = cur.fetchone()[0]
     return int(total_users)
+
+def get_active_users_list():
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = "SELECT id FROM users WHERE `status` = 'active'"
+    cur.execute(query)
+    active_users_list = cur.fetchall()
+    active_users = [user[0] for user in active_users_list]
+    return active_users
 
 def get_account_info(user_id):
     conn = helper_functions.connectDB(DB_NAME)
@@ -51,10 +54,17 @@ def get_account_info(user_id):
     query = f"SELECT compensation FROM users WHERE id = '{user_id}'"
     cur.execute(query)
     compensation = cur.fetchone()[0]
-    query = f"SELECT task_id FROM assignments WHERE user_id = '{user_id}' and submission_time IS NOT NULL"
+    query = f"SELECT task_id FROM assignments WHERE user_id = '{user_id}' AND checked = 1 AND submission_time IS NOT NULL"
     cur.execute(query)
     tasks = [task[0] for task in cur.fetchall()]
     return compensation, tasks
+
+def update_account_status(user_id, status):
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    cur.execute(f"UPDATE users SET `status` = '{status}' WHERE id = '{user_id}'")
+    conn.commit()
+    conn.close
 
 
 def update_tasks_expired():
@@ -75,7 +85,7 @@ def get_task_list(user_id, task_id):
     cur.execute(query)
     assignment = cur.fetchone()
     conn.close()
-    assert assignment, F"Assignment #{task_id} could not be found in database!"
+    assert assignment, f"Assignment #{task_id} could not be found in database!"
     return assignment
 
 
@@ -89,7 +99,6 @@ def get_assignments(db_name):
     update_tasks_expired()
     conn = helper_functions.connectDB(db_name)
     cur = conn.cursor()
-    #print("finished1")
     query = '''SELECT assignments.task_id, assignments.user_id, 
                 tasks.location, tasks.description, tasks.start_time, tasks.time_window, 
                 tasks.compensation
@@ -98,16 +107,13 @@ def get_assignments(db_name):
     cur.execute(query)
     assignments = cur.fetchall()
     conn.close()
-    #print(assignments)
     assignments_dict = {}
     for assignment in assignments:
         uid = assignment[1]
-        #print(uid)
         if uid in assignments_dict:
             (assignments_dict[uid]).append(assignment)
         else:
             assignments_dict[uid] = [assignment]       
-    #print(assignmentsDict)
     return assignments_dict
 
 def get_assign_status(task, user):
@@ -150,13 +156,17 @@ def get_accepted_tasks(user_id) -> list:
     Finds that user's assignment data.
     
     """
+    update_tasks_expired()
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
-    query = f'''SELECT task_id FROM assignments 
-                WHERE user_id = '{user_id}' AND `status` = 'accepted'
-            '''
+    query = f'''SELECT DISTINCT assignments.task_id
+                FROM assignments INNER JOIN tasks 
+                ON assignments.task_id = tasks.id
+                WHERE (assignments.user_id = '{user_id}') AND (assignments.`status` = 'accepted') AND (tasks.expired != 1) AND (img IS NULL)'''
     cur.execute(query)
-    task_list = [item[0] for item in cur.fetchall()]
+
+    task_list = [int(task_id[0]) for task_id in cur.fetchall()]
+    
     conn.close()
     return task_list
 
@@ -168,8 +178,13 @@ def get_pending_tasks(user_id) -> list:
     """
     conn = helper_functions.connectDB(DB_NAME)
     cur = conn.cursor()
-    query = f'''SELECT task_id FROM assignments 
-                WHERE user_id = '{user_id}' AND `status` = 'pending'
+    # query = f'''SELECT task_id FROM assignments 
+    #             WHERE user_id = '{user_id}' AND `status` = 'pending'
+    #         '''
+    query = f'''SELECT DISTINCT assignments.task_id 
+                FROM assignments INNER JOIN tasks
+                ON assignments.task_id = tasks.id
+                WHERE assignments.user_id = '{user_id}' AND assignments.`status` = 'pending' AND tasks.expired = 0
             '''
     cur.execute(query)
     task_list = [item[0] for item in cur.fetchall()]
@@ -201,8 +216,8 @@ def submit_task(user_id, task_id, path):
         query = f'''UPDATE assignments 
                     INNER JOIN users ON assignments.user_id = users.id
                     INNER JOIN tasks ON assignments.task_id = tasks.id
-                SET assignments.img = '{path}', assignments.`submission_time` = NOW(),
-                    users.compensation = users.compensation+ tasks.compensation
+                SET assignments.img = '{path}', 
+                    assignments.`submission_time` = NOW()
                 WHERE (assignments.user_id = '{user_id}' 
                     AND assignments.task_id = {task_id})
                 '''
@@ -213,7 +228,30 @@ def submit_task(user_id, task_id, path):
     else:
         return False
 
-
+def delete_submission(user_id, task_id):
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = f'''UPDATE assignments
+            SET img = NULL, submission_time = NULL
+            WHERE user_id = {user_id} AND task_id = {task_id}
+            '''
+    cur.execute(query)
+    conn.commit()
+    return
+    
+def check_all_assignments():
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = f'''UPDATE assignments 
+                INNER JOIN users ON assignments.user_id = users.id
+                INNER JOIN tasks ON assignments.task_id = tasks.id
+            SET users.compensation = users.compensation+ tasks.compensation,
+                assignments.checked = 1
+            WHERE (assignments.checked = 0 AND submission_time IS NOT NULL)
+            '''
+    cur.execute(query)
+    conn.commit()
+    return
 
 if __name__ == "__main__":
     pass

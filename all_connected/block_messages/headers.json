@@ -1,0 +1,59 @@
+{
+    "active_header": 
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": " *✅ Your Active Tasks ✅* \nAccepted, uncompleted tasks that haven't expired yet."
+		}
+	},
+	"no_active_header":{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": " *✅ You have no active tasks! ✅* \n Active tasks are accepted, uncompleted, and unexpired tasks. Accept pending task to get more!"
+		}
+	},
+	"too_many_active_header": {
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "*And more active tasks, finish tasks to see more...*"
+		}
+	},
+    "pending_header": 
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": " *⌛ Your Pending Tasks ⌛* \nTasks you haven't accepted or rejected yet."
+		}
+	},
+	"no_pending_header":{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "*⌛ You have no pending tasks! ⌛* Pending are tasks you haven't accepted or rejected yet. Wait for TaskBot to send you more!"
+		}
+	},
+	"too_many_pending_header":{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "*And more pending tasks, finish tasks to see more...*"
+		}
+	},
+    "divider":
+	{
+		"type": "divider"
+	},
+	"ending_block":
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "🌸 Reply `help` or `?` for help or to report a bug! 🌸"
+		}
+	}
+		
+}

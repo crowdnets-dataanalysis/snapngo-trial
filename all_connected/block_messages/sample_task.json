@@ -4,7 +4,7 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*Are you trying to submit to a Task? Please follow the below directions: *\n    *1.* Complete the task's objective \n    *2.* Go to the @TaskBot DM channel here on Slack \n    *3.* Type the task number & attach that task's image (see below)\n"
+				"text": "*Are you trying to submit to a Task? Please follow the directions below (you can only submit 1 task at a time): *\n    *1.* Complete the task's objective \n    *2.* Go to the @TaskBot DM channel here on Slack \n    *3.* Type the task number & attach that task's image (see below)\n"
 			}
 		},
 		{
@@ -14,7 +14,7 @@
 				"text": "image1",
 				"emoji": true
 			},
-			"image_url": "https://i.imgur.com/Dxij9Po.jpg",
+			"image_url": "https://i.imgur.com/50Zkv7n.jpg",
 			"alt_text": "image1"
 		},
 		{
@@ -31,7 +31,7 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "🌸 *Reply '?' to see more info* 🌸"
+				"text": "🌸 *Reply `?` or `help` to see more info or report a bug!* 🌸"
 			}
 		}
 	]

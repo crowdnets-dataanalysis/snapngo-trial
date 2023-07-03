@@ -16,7 +16,7 @@ from threading import Timer
 from datetime import datetime, time
 
 START_HOURS = time(10,00)
-END_HOURS = time(18,00)
+END_HOURS = time(16,00)
 
 def connectDB(dbName):
     """
@@ -73,9 +73,17 @@ class RepeatTimer(Timer):
         now = datetime.now()
         not_weekend = now.strftime("%A").lower() not in {'saturday', 'sunday'}
         during_workday = START_HOURS < now.time() < END_HOURS
-        while not self.finished.wait(self.interval) and not_weekend and during_workday:
-            self.function(*self.args, **self.kwargs)
+        while not self.finished.wait(self.interval):
+            if not_weekend and during_workday:
+                self.function(*self.args, **self.kwargs)
 
 
 if __name__ == '__main__':
     pass
+
+    
+    # now = datetime(22,6,27,18,11,11)
+    # not_weekend = now.strftime("%A").lower() not in {'saturday', 'sunday'}
+    # during_workday = START_HOURS < now.time() < END_HOURS
+    # print(not_weekend)
+    # print(during_workday)

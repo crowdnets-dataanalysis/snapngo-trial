@@ -10,8 +10,9 @@ import task
 import messenger
 import bot
 
+import datetime
 import time
-
+import schedule
 
 ### ### Control Center ### ###
 DB_NAME = 'snapngo_db'
@@ -24,15 +25,16 @@ MATCHING_CYCLE = TASK_CYCLE+2
 MESSENGER_BOT_CYCLE = 60*60+3
 
 
+START_HOURS = helper_functions.START_HOURS
+END_HOURS = helper_functions.END_HOURS
+
 
 ### ### Task Generation call ### ###
 # Generate & insert task(s)
 def task_call():
     """Takes & returns nothing. Container for task call timer."""
     task.generate_tasks(NUM_TASKS_PER_CYCLE, DB_NAME)
-    print('- tasks generated')
-
-task_timer = helper_functions.RepeatTimer(task_call, TASK_CYCLE)
+    print('- tasks generated', datetime.datetime.now())
 
 
 ### ### Matching Algorithm & Assignments call ### ###
@@ -40,13 +42,7 @@ task_timer = helper_functions.RepeatTimer(task_call, TASK_CYCLE)
 def match_call():
     """Takes & returns nothing. Container for match call timer."""
     matching_assignments.match_users_and_tasks(matching_assignments.algorithm_random, DB_NAME)
-    print("- tasks matched")
-
-
-match_timer = helper_functions.RepeatTimer(match_call,
-                                seconds=MATCHING_CYCLE,
-                                minutes=0,
-                                hours=0)
+    print("- tasks matched", datetime.datetime.now())
 
 
 ### ### MESSENGER call ### ###
@@ -59,25 +55,65 @@ def messenger_bot_call():
     messenger.update_assign_status("pending", 0, 0)
 
 
-messenger_timer = helper_functions.RepeatTimer(messenger_bot_call,
+
+def start_all_timers():
+    task_timer = helper_functions.RepeatTimer(task_call, TASK_CYCLE)
+    match_timer = helper_functions.RepeatTimer(match_call,
+                                seconds=MATCHING_CYCLE,
+                                minutes=0,
+                                hours=0)
+    messenger_timer = helper_functions.RepeatTimer(messenger_bot_call,
                                 seconds=MESSENGER_BOT_CYCLE,
                                 minutes=0,
                                 hours=0)
-
-
-if __name__ == "__main__":
-    user_store = bot.get_all_users_info()
-    messenger.add_users(user_store)
-    bot.send_welcome_message(user_store)
     # Start all cycles
     task_timer.start()
     match_timer.start()
     messenger_timer.start()
+    print("STARTED ALL TIMERS", datetime.datetime.now())
+    return task_timer, match_timer, messenger_timer
 
-    # Run time
-    time.sleep(30*60)
-
-    # End all cycles
+def cancel_all_timers(task_timer, match_timer, messenger_timer):
+    print("CANCEL ALL TIMERS", datetime.datetime.now())
     task_timer.cancel()
     match_timer.cancel()
     messenger_timer.cancel()
+
+def daily_cycle():
+    active_users = messenger.get_active_users_list()
+    for user_id in active_users:
+        messenger.update_account_status(user_id, "active")
+    task_timer, match_timer, messenger_timer = start_all_timers()
+    # Run time
+    end_time = datetime.datetime.combine(datetime.date.today(), END_HOURS)
+    duration = (end_time - datetime.datetime.now()).total_seconds()
+    print(duration)
+    time.sleep(duration + 2) # run till end_time
+    # Check assignments and end daily summary
+    bot.check_all_assignments()
+    # End all cycles
+    cancel_all_timers(task_timer, match_timer, messenger_timer)
+
+if __name__ == "__main__":
+    # user_store = bot.get_all_users_info()
+    # messenger.add_users(user_store)
+    # #bot.send_welcome_message(user_store)
+
+    # Start all cycles
+    # start_all_timers()
+
+    # # Run time
+    # time.sleep(3*60*60*24) # run for three days
+
+    # # End all cycles
+    # task_timer.cancel()
+    # match_timer.cancel()
+    # messenger_timer.cancel()
+
+    # Try implementing using schedule library
+    #schedule.every().day.at("16:40").do(cancel_all_timers)
+    # daily_cycle()
+    schedule.every().day.at("11:00").do(daily_cycle)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

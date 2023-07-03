@@ -35,14 +35,14 @@
 				"text": "image1",
 				"emoji": true
 			},
-			"image_url": "https://i.imgur.com/Dxij9Po.jpg",
+			"image_url": "https://i.imgur.com/50Zkv7n.jpg",
 			"alt_text": "image1"
 		},
 		{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "\n.  *4.* Send the message!\n    *5.* We'll check the task & send back a confirmation of completion \n            •  This step may take a few minutes"
+				"text": "\n.  *4.* Send the message!\n    *5.* We'll check the the submissions at the end of the day and send you a daily summary. \n            •  Your compensation will be added after your submission is checked. You can type and send `account` to see your account status at any time."
 			}
 		},
 		{
@@ -52,8 +52,18 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "🌸 *Freqently Asked Questions* 🌸 \n*When & how will I get paid?*\nYou'll get paid out the full amount you've earned at the end of the summer program. You can recieve the money through OPTIONS.\n\n*When will I receive tasks?*\n Task Bot will send out tasks periodically, but you may not receive one every time they're sent out. \n\n*QUESTION*\n answer. \n\n*QUESTION*\n answer."
+				"text": "🌸 *Freqently Asked Questions* 🌸 \n*When & how will I get paid?*\nYou'll get paid out the full amount you've earned at the end of the summer program. You can recieve the money in the form of e-gift cards.\n\n*When will I receive tasks?*\n Task Bot will send out tasks periodically, but you may not receive one every time they're sent out. \n\n*What are the commands I can send to the bot?*\n Here are a list of available commands:"
 			}
+		},
+		{
+			"type": "image",
+			"title": {
+				"type": "plain_text",
+				"text": "image2",
+				"emoji": true
+			},
+			"image_url": "https://i.imgur.com/gHj11IF.png",
+			"alt_text": "image2"
 		},
 		{
 			"type": "divider"

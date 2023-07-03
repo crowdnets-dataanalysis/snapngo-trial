@@ -14,11 +14,24 @@ from slack_sdk.errors import SlackApiError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_bolt.adapter.flask import SlackRequestHandler
-from datetime import date
+from datetime import date, datetime
+import random
 
 
 ### ### CONSTANTS ### ###
 DB_NAME = 'snapngo_db'
+
+EMOJI_DICT = {0: '🪴', 
+                1: '🌺', 
+                2: '🍀', 
+                3: '✨',
+                4: '🐨', 
+                5: '🐶',
+                6: '🐱',
+                7: '🦔',
+                8: '🐱',
+                9: '🪴', 
+}
 
 
 ## ### LOAD IN MESSAGE BLOCKS ### ###
@@ -30,6 +43,12 @@ with open('block_messages/help_block.json', 'r') as infile:
 
 with open('block_messages/sample_task.json', 'r') as infile:
     sample_task = json.load(infile)
+
+with open('block_messages/onboarding_block.json', 'r') as infile:
+    onboarding = json.load(infile)
+
+with open('block_messages/headers.json', 'r') as infile:
+    block_headers = json.load(infile)
 
 
 ### ### INITIALIZE BOLT APP ### ###
@@ -44,6 +63,26 @@ BOT_ID = client.api_call("auth.test")['user_id']
 
 
 ### ### HELPER FUNCTIONS ### ####
+def send_messages(user_id, block = None, text = None):
+    client.chat_postMessage(channel=f"@{user_id}", blocks = block, text=text)
+    return
+
+def send_welcome_message(users_list) -> None:
+    '''
+    Takes   A list containing all user ids or a dictionary with user ids as its keys. 
+            currently using users_store returned by get_all_users_info()
+    Sends welcoming message to all users
+    '''
+    active_users = messenger.get_active_users_list()
+    for user_id in users_list:
+        if BOT_ID != user_id and user_id in active_users:      
+            try:
+                print(f'IN Welcome: {user_id}', datetime.now())
+                client.chat_postMessage(channel=f"@{user_id}", blocks = onboarding['blocks'], text="Welcome to Snap N Go!")
+                print("Welcome!")
+            except SlackApiError as e:
+                assert e.response["ok"] is False and e.response["error"], f"Got an error: {e.response['error']}"
+
 def send_tasks(assignments_dict) -> None:
     '''
     * Message users to give them new tasks *
@@ -52,9 +91,10 @@ def send_tasks(assignments_dict) -> None:
         user respectively
     Returns nothing
     ''' 
+    active_users = messenger.get_active_users_list()
     for user_id in assignments_dict:
-        print(f'IN SEND TASKS: {user_id}')
-        if BOT_ID != user_id:   
+        print(f'IN SEND TASKS: {user_id}', datetime.now())
+        if BOT_ID != user_id and user_id in active_users:   
             try:
                 for task_info in assignments_dict[user_id]:
                     block = generate_message(task_info, user_id)
@@ -73,9 +113,19 @@ def generate_message(task_info, user_id):
     Return the block message
     '''
     block = []
-    text = (f"*Task # {task_info[0]}*,Location: {task_info[2]} \n" + 
-            f"Description: {task_info[3]}\n Start Time: {task_info[4]} \n" + 
-            f"Window: {task_info[5]} \n Compensation: {task_info[6]}")
+    starttime_format = task_info[4].strftime("%A (%m/%d) at %I:%M%p")
+    # text = (f"*Task # {task_info[0]}*,Location: {task_info[2]} \n" + 
+    #         f"Description: {task_info[3]}\nStart Time: {starttime_format} \n" + 
+    #         f"Window: {task_info[5]} minutes \nCompensation: ${task_info[6]}")
+    
+
+    text = (f"PLACEHOLDER_EMOJI *Task #PLACEHOLDER_TASKID* PLACEHOLDER_EMOJI \n*Description:* PLACEHOLDER_DESCRIPTION. \n*Start Time:* PLACEHOLDER_STARTTIME \n*Window:* PLACEHOLDER_WINDOW minutes \n*Compensation:* $PLACEHOLDER_COMPENSATION")\
+                .replace('PLACEHOLDER_EMOJI', EMOJI_DICT[int(str(task_info[0])[-1])]) \
+                .replace('PLACEHOLDER_TASKID', str(task_info[0])) \
+                .replace('PLACEHOLDER_DESCRIPTION', str(task_info[3])) \
+                .replace('PLACEHOLDER_STARTTIME', str(starttime_format)) \
+                .replace('PLACEHOLDER_WINDOW', str(task_info[5])) \
+                .replace('PLACEHOLDER_COMPENSATION', str(task_info[6])) 
 
     description = {
                 "type": "section",
@@ -89,6 +139,76 @@ def generate_message(task_info, user_id):
     block.append(buttons)
     return block
 
+
+def compact_task(task_info) -> dict:
+    """
+    Takes a task_info list.
+    Formats that task info into a compact task block (for uses outside 
+        of when a task is first send to a user).
+    Returns a fully formed 'section' Slack block (dict).
+    """
+    starttime_format = task_info[4].strftime("%A (%m/%d) at %I:%M%p")
+    text  = "*Task #PLACEHOLDER_TASKID* (*comp:* $PLACEHOLDER_COMPENSATION)\n *Starts:* PLACEHOLDER_STARTTIME, *window*: PLACEHOLDER_WINDOW min \n*Description:* PLACEHOLDER_DESCRIPTION." \
+                .replace('PLACEHOLDER_TASKID', str(task_info[0])) \
+                .replace('PLACEHOLDER_DESCRIPTION', str(task_info[3])) \
+                .replace('PLACEHOLDER_STARTTIME', str(starttime_format)) \
+                .replace('PLACEHOLDER_WINDOW', str(task_info[5])) \
+                .replace('PLACEHOLDER_COMPENSATION', str(task_info[6])) 
+    return {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": text
+			}
+		}
+    
+def make_report_block(user_id) -> list:
+    """
+    Takes a user id (int? str?)
+    Formats a report block for the given user using their 
+        active (accepted, unexpired, uncompleted) & 
+        pending (pending, unexpired) tasks.
+    Returns a full formatted Slack block message (dict).
+    
+    """
+    # A list of task_list lists for all accepted, unexpired, uncompleted tasks
+    active_ids = messenger.get_accepted_tasks(user_id)
+    all_active = [messenger.get_task_list(user_id, task_id) for task_id in active_ids]
+  
+    # A list of task_list lists for all pending & unexpired tasks
+    pending_ids = messenger.get_pending_tasks(user_id)
+
+    # Add appropriate active task information
+    blocks = []
+    if all_active:
+        if len(blocks) >= 46:
+                blocks.append(block_headers['too_many_pending_header'])
+        blocks.append(block_headers['active_header'])
+        blocks.append(block_headers['divider'])
+        
+        # Sort active tasks by start time
+        sorted_active = sorted(all_active, key=lambda task_list: task_list[4]) 
+        for task_list in sorted_active:
+            active_task = compact_task(task_list)
+            blocks.append(active_task)
+    else:
+        blocks.append(block_headers['no_active_header'])
+
+    blocks.append(block_headers['divider'])
+    
+    # Add appropriate pending task information
+    if pending_ids:
+        blocks.append(block_headers['pending_header'])
+    else:
+        blocks.append(block_headers['no_pending_header'])
+
+    # # Add 'for more info' ending
+    # blocks.append(block_headers['divider'])
+    # blocks.append(block_headers['ending_block'])
+
+    return blocks
+
+
 def button_color(task_id, user_id):
     """
     Takes a task id (int) and user id (str).
@@ -101,7 +221,6 @@ def button_color(task_id, user_id):
         block['elements'][1]['style'] = 'danger'
         block['block_id'] = str(task_id)
     elif status == "accepted": # Accept btn is green
-        print('accepted')
         block = copy.deepcopy(default_btn)
         block['elements'][0]['style'] = 'primary'
         block['block_id'] = str(task_id)
@@ -147,21 +266,33 @@ def get_pic(url, token, user_id, task_id):
     open(filename, 'wb').write(r.content)
     return filename
 
-def send_welcome_message(users_list):
-    '''
-    Takes   A list containing all user ids or a dictionary with user ids as its keys. 
-            currently using users_store returned by get_all_users_info()
+def check_all_assignments():
+    messenger.check_all_assignments()
     
-    '''
-    for user_id in users_list:
-        print(f'IN Welcome: {user_id}')
-        if BOT_ID != user_id:   
-            try:
-                client.chat_postMessage(channel=f"@{user_id}", blocks = info_page, text="Welcome to Snap N Go!")
-                print("Welcome!")
-            except SlackApiError as e:
-                assert e.response["ok"] is False and e.response["error"], f"Got an error: {e.response['error']}"
-
+    for user_id in messenger.get_active_users_list():
+        block = [{
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "✨*Your Daily Summary*✨"
+        }
+        }]
+        block += generate_account_summary_block(user_id)
+        #send account summary
+        send_messages(user_id, block, "")
+    return
+    
+def generate_account_summary_block(user_id):
+    compensation, tasks = messenger.get_account_info(user_id)
+    text = f"All completed tasks: {tasks}\nTotal compensation: ${compensation}"
+    summary = [{
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": text
+        }
+    }]
+    return summary
 
 ### ### MESSAGE HANDLERS ### ###
 @app.message()
@@ -172,12 +303,11 @@ def handle_message(payload, say):
     When on, constantly listens for new messages, the responds as dictated below.
     Returns nothing.
     """
-    print("- Message sent")
-
     channel_id = payload.get('channel')
     user_id = payload.get('user')
     text = payload.get('text')
-    
+
+    print("- Message sent", user_id, text, datetime.now())
     # Handle certain responses
     if BOT_ID != user_id:
         if 'files' not in payload:
@@ -185,13 +315,36 @@ def handle_message(payload, say):
                 say(info_page)
             # User only sends text without attaching an image
             elif text.strip().lower() == "account":
-                compensation, tasks = messenger.get_account_info(user_id)
-                say(f"You have completed tasks {tasks}, and have earned a total compensation of ${compensation}")
-            else:          
+                send_messages(user_id, generate_account_summary_block(user_id), "")
+            elif text.strip().lower() == "report":
+                active_block = make_report_block(user_id)
+                end_block = [block_headers['divider'], block_headers['ending_block']]
+                client.chat_postMessage(channel=f"@{user_id}", blocks = active_block,text="")
+
+                 # Sort pending tasks by start time
+                pending_ids = messenger.get_pending_tasks(user_id)
+                all_pending = [messenger.get_task_list(user_id, task_id) for task_id in pending_ids]
+                sorted_pending = sorted(all_pending, key=lambda task_list: task_list[4])
+                for task_list in sorted_pending:
+                    pending_task = compact_task(task_list)
+                    buttons = copy.deepcopy(default_btn)
+                    buttons['block_id'] = str(task_list[0])
+                    blocks = [pending_task, buttons]
+
+                    client.chat_postMessage(channel=f"@{user_id}", blocks = blocks, text="")
+
+                client.chat_postMessage(channel=f"@{user_id}", blocks = end_block,text="")
+            elif text.strip().lower() == "opt in":
+                messenger.update_account_status(user_id, "active")
+                say("You have opted in for the day.")
+            elif text.strip().lower() == "opt out":
+                messenger.update_account_status(user_id, "inactive")
+                say("You have opted out for the day.")
+            else:
                 say(sample_task)
         else:
             # User attaches more than one image
-            print("text+img")
+            print("text+img", datetime.now())
             print(payload['files'])
             if len(payload['files']) > 1: 
                 say("*:large_orange_circle: You are attaching more than one file.* Reply `?` for more information.")
