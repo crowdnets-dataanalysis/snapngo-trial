@@ -10,8 +10,15 @@ from datetime import datetime, timedelta, time, date
 import pandas as pd 
 
 
-START_HOURS = helper_functions.START_HOURS
-END_HOURS = helper_functions.END_HOURS
+### ### TASK PARAMETERS ### ###
+START_HOURS = time(10,00) # 10am
+END_HOURS = time(16,00) # 4pm
+TASK_TIMEWINDOW = random.randint(1, 100) # in minutes
+TASK_COMP = round(random.randint(40, 60)/100, 2) # in cents
+
+TASK_LOCATION_FILE = f'data/task_locations.json'
+TASK_DESCRIPTION_FILE = f'data/task_descriptions.json'
+
 
 ### ### HELPER FUNCTIONS ### ###
 def random_datetime(n):
@@ -49,7 +56,7 @@ def random_datetime(n):
     return date_sample
 
 
-def create_task(locations):
+def create_task(locations, all_descriptions):
     """
      * Helper function for generate_tasks() *
     Takes a list of task locations.
@@ -60,12 +67,9 @@ def create_task(locations):
     # Generate a random location, time window (seconds), and compensation (cents)
     location = random.choice(locations)
     
-    with open('data/task_descriptions.json', 'r') as infile:
-        all_descriptions = json.load(infile)
-
     return {'location': location,
-            'time_window': random.randint(1, 100),
-            'compensation': round(random.randint(40, 60)/100, 2),
+            'time_window': TASK_TIMEWINDOW,
+            'compensation': TASK_COMP,
             'expired': False,
             'description': f'At {location} in the Science Center, {random.choice(all_descriptions)}'}
 
@@ -105,16 +109,18 @@ def generate_tasks(num_tasks, db_name):
     Returns nothing.
     """
     # Open database connection
-    db = helper_functions.connectDB(db_name)
+    db = helper_functions.connectDB(db_name);
 
-
-
-    # Get matrix representation of graph and dictionary of vertex indices & locations
-    with open('data/task_locations.json', 'r') as infile:
+    # Get list of possible locations
+    with open(TASK_LOCATION_FILE, 'r') as infile:
         locations_list = json.load(infile)
 
+    # Get list of possible task descriptions
+    with open(TASK_DESCRIPTION_FILE, 'r') as infile:
+        all_descriptions = json.load(infile)
+
     # Generate a Tasks & random start times
-    all_tasks = [create_task(locations_list) for _ in range(num_tasks)]
+    all_tasks = [create_task(locations_list, all_descriptions) for _ in range(num_tasks)]
     start_times = random_datetime(num_tasks)
 
     # Insert those tasks objects into the Task database
@@ -126,3 +132,4 @@ def generate_tasks(num_tasks, db_name):
 
 if __name__ == '__main__':
     generate_tasks(3, 'snapngo_db')
+    
