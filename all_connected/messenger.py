@@ -25,7 +25,8 @@ def add_users(user_store):
     for key in user_store:
         not_bot = user_store[key]['is_bot'] == False
         not_slackbot = (key != 'USLACKBOT')
-        if not_bot and not_slackbot:
+        deleted = user_store[key]['deleted']
+        if not_bot and not_slackbot and (not deleted):
             name = user_store[key]['name']
             cur.execute(query, (name, key))
             conn.commit()
@@ -75,6 +76,12 @@ def update_account_status(user_id, status):
     conn.commit()
     conn.close
 
+def add_account_compensation(user_id, compensation):
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    cur.execute(f"UPDATE users SET `compensation` = compensation + {compensation} WHERE id = '{user_id}'")
+    conn.commit()
+    conn.close
 
 def update_tasks_expired():
     conn = helper_functions.connectDB(DB_NAME)
@@ -233,6 +240,7 @@ def submit_task(user_id, task_id, path):
         cur.execute(query)
         conn.commit()
         conn.close()
+        update_reliability(user_id)
         return True
     else:
         return False
@@ -246,6 +254,7 @@ def delete_submission(user_id, task_id):
             '''
     cur.execute(query)
     conn.commit()
+    conn.close()
     return
     
 def check_all_assignments():
@@ -260,6 +269,39 @@ def check_all_assignments():
             '''
     cur.execute(query)
     conn.commit()
+    conn.close()
+    return
+
+def update_reliability(user_id):
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    query = f'''SELECT COUNT(status)
+                FROM assignments
+                WHERE status = 'accepted' and user_id = '{user_id}'
+            '''
+    cur.execute(query)
+    accepted = cur.fetchone()[0]
+    if accepted == 0:
+        reliability = 0.1
+    else:
+        query = f'''SELECT COUNT(img)
+                    FROM assignments
+                    WHERE img IS NOT NULL and user_id = '{user_id}'
+                '''
+        cur.execute(query)
+        submissions = cur.fetchone()[0]
+        if submissions == 0:
+            reliability = 0.1
+        else:
+            reliability = round(submissions/accepted, 2)
+    print(user_id, reliability)
+    query = f'''UPDATE users 
+            SET reliability = {reliability}
+            WHERE id = '{user_id}'
+            '''
+    cur.execute(query)
+    conn.commit()
+    conn.close()
     return
 
 if __name__ == "__main__":

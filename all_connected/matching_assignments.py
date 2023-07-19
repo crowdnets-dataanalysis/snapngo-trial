@@ -37,7 +37,6 @@ def read_table(db, table_name):
 
     return table_dict
 
-
 def create_task_user_dict(assignment_data):
     """
     * Helper functions for matching algorithms * 
@@ -55,7 +54,6 @@ def create_task_user_dict(assignment_data):
         previously_assigned = task_users_dict.get(task_id, set()) # get any user_ids already stored
         previously_assigned.add(user_id)
         task_users_dict[task_id] = previously_assigned
-
     return task_users_dict
 
 
@@ -78,7 +76,11 @@ def insert_assignments(assignment_info, db):
         # Commit the changes to the database
         db.commit()
 
-
+def create_ab_groups(user_list):
+    middle_index = int(len(user_list)/2)
+    a_group = user_list[:middle_index]
+    b_group = user_list[middle_index:]
+    return a_group, b_group
 
 ### ### ALGORITHMS ### ###
 def algorithm_random(assignment_data, task_data, user_data):
@@ -103,6 +105,48 @@ def algorithm_random(assignment_data, task_data, user_data):
 
     return matchings
 
+def algorithm_weighted(assignment_data, task_data, user_data):
+    """
+    * One of many possible matching algorithms for match_users_and_tasks()*
+    Takes a list of all user ids & a list of all unassigned task ids.
+    Matches a user (who has never been previously assigned to this task) to each task weighted on their reliability scores.
+    Returns a list of those user-task matches, format: [[task_id, user_id], [...], ...]
+    """
+    # Assemble task-user dict, key: task_id (int), value: ids of all previously-assigned users (set)
+    task_users_dict = {} if not assignment_data else create_task_user_dict(assignment_data)
+    reliability_dict = {user_data['id'][i]:float(user_data['reliability'][i]) for i in range(len(user_data['id']))}
+    
+    # Split users into ab groups
+    # active_list = [user for user in reliability_dict if reliability_dict[user]> 0.1]
+    # a_active, b_active = create_ab_groups(active_list)
+    # inactive_list = [user for user in reliability_dict if reliability_dict[user]== 0.1]
+    # a_inactive, b_inactive = create_ab_groups(inactive_list)
+    # a_group = a_active + a_inactive
+    # b_group = b_active + b_inactive
+    # print("A GROUP: ", a_group)
+    # print("B GROUP: ", b_group)
+    a_group = ['U05EX6F89BR', 'U05F44JN6HL', 'U05FAPY69PU', 'U05FCBGTX1R', 'U05B24S3LR1', 'U05E80KQ9D0', 'U05EW82D1E3', 'U05EW84936K', 'U05F44J029L', 'U05F7RYS093', 'U05FALCSWJF']
+    b_group = ['U05FMEAE62E', 'U05FPRMEMRS', 'U05G0FC05MW', 'U05G1M69C1E', 'U05FC4JJNUS', 'U05FCMQN908', 'U05FD7ERYMS', 'U05FE5S1BEG', 'U05FPD1KKLZ', 'U05G0FB3QKA', 'U05G0FC35CY']
+    # For each task, select a new random user_id 
+    matchings = []
+    count = 0
+    half_task = int(len(task_data)/2)
+    for task_id in task_data:
+        if count <= half_task:
+            # Subtract all previously-assigned users from overall user pool
+            available_user_ids = set(b_group) - task_users_dict.get(task_id, set())
+            reliability_list = [int(reliability_dict[user]*100) for user in available_user_ids]
+
+            # Assign & note matching
+            user_id = random.choices(list(available_user_ids), reliability_list)[0]
+        else:
+            available_user_ids = set(a_group) - task_users_dict.get(task_id, set())
+
+            # Assign & note matching
+            user_id = random.choice(list(available_user_ids))
+        matchings.append([task_id, user_id])
+        count += 1
+    return matchings
 
 
 ### ### OVERALL MATCHING & ASSIGNMENT GENERATION ### ###
@@ -118,7 +162,7 @@ def match_users_and_tasks(matching_algo, db_name):
 
     # read in assignment, task, and user data
     assignment_data = read_table(db, 'assignments')
-    task_data = read_table(db, 'tasks')
+    # task_data = read_table(db, 'tasks')
     user_data = read_table(db, 'users')
 
     # Updates task expiration status
@@ -143,4 +187,4 @@ def match_users_and_tasks(matching_algo, db_name):
 
 
 if __name__ == '__main__':
-    match_users_and_tasks(algorithm_random, 'snapngo_db')
+    match_users_and_tasks(algorithm_weighted, 'snapngo_db')

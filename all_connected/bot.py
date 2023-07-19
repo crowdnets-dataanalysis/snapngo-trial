@@ -344,7 +344,7 @@ def handle_message(payload, say):
                 say(sample_task)
         else:
             # User attaches more than one image
-            print("text+img", datetime.now())
+            print("text+file", datetime.now())
             print(payload)
             if len(payload['files']) > 1: 
                 say("*:large_orange_circle: You are attaching more than one file.* Reply `?` for more information.")
@@ -364,21 +364,22 @@ def handle_message(payload, say):
             accepted_tasks = messenger.get_accepted_tasks(user_id)
             pending_tasks = messenger.get_pending_tasks(user_id)
             # The text the user enters isn't any of their assigned task numbers
-            if task_id not in accepted_tasks: 
-                say(f":large_orange_circle: Task {task_id} is not one of your accepted tasks. Your accepted tasks are {accepted_tasks}")
+            if messenger.check_time_window(task_id) == "expired":
+                say(f''':large_orange_circle: Task {task_id} has already expired. Please pick another assigned task to finish.''')
+            elif messenger.check_time_window(task_id) == "not started":
+                say(f''':large_orange_circle: Task {task_id} has not started yet. Please check the start time & time window and finish this task later.''')
+            elif task_id not in accepted_tasks: 
+                say(f":large_orange_circle: Task {task_id} is not one of your unfinished, accepted tasks. Your unfinished, accepted tasks are {accepted_tasks}")
                 if task_id in pending_tasks:
                     say(f'''However, task {task_id} is one of your pending tasks. You can still complete the task by pressing the Accept button for task {task_id} and then submit your picture.''')
                 return
             else:
-                if messenger.check_time_window(task_id) == "expired":
-                    say(f''':large_orange_circle: Task {task_id} has already expired. Please pick another assigned task to finish.''')
-                elif messenger.check_time_window(task_id) == "not started":
-                    say(f''':large_orange_circle: Task {task_id} has not started yet. Please check the time window and finish this task later.''')
-                else:
-                    url = file['url_private_download']
-                    path = get_pic(url, os.environ['CAT_BOT_TOKEN'], user_id, task_id)
-                    if messenger.submit_task(user_id, task_id, path):
-                        say(f"We received your submission to task {task_id}. Your compensation will be secured once we checked your submission. Reply `account` for more information on your account and completed tasks.")
+                print("submitted")
+                url = file['url_private_download']
+                path = get_pic(url, os.environ['CAT_BOT_TOKEN'], user_id, task_id)
+                if messenger.submit_task(user_id, task_id, path):
+                    messenger.update_reliability(user_id)
+                    say(f"We received your submission to task {task_id}. Your compensation will be secured once we checked your submission. Reply `account` for more information on your account and completed tasks.")
             #update database if image is NULL
         return #needs to be changed
 
@@ -400,7 +401,12 @@ def handle_file_shared_events():
     '''
     return
 
-
+@app.event("team_join")
+def handle_team_join(body, logger, say):
+    user_store = get_all_users_info()
+    messenger.add_users(user_store)
+    user_id = body["event"]["user"]["id"]
+    send_welcome_message([user_id])
 
 ### ### INTERACTION HANDLERS ### ###
 @app.action("accepted")
@@ -410,12 +416,16 @@ def action_button_click(body, ack, say):
     '''
     # Acknowledge the action
     ack()
+    messenger.update_tasks_expired()
     action = body['actions'][0]
     new_status = action['value']
     task = int(action['block_id'])
     user = str(body['user']['id'])
     task_list = messenger.get_task_list(user, task)
     old_status = messenger.get_assign_status(task, user)
+    if messenger.check_time_window(task) == "expired":
+        say(f''':large_orange_circle: Task {task} has already expired. Please pick another assigned task to finish.''')
+        return
     if old_status == "pending":
         messenger.update_assign_status(new_status, task, user)
         # task_list = messenger.get
@@ -433,20 +443,25 @@ def action_button_click(body, ack, say):
     ack()
 
     # Get task info 
+    messenger.update_tasks_expired()
     action = body['actions'][0]
     new_status = action['value']
     task = int(action['block_id'])
     user = str(body['user']['id'])
     task_list = messenger.get_task_list(user, task)
     old_status = messenger.get_assign_status(task, user)
-    
+    if messenger.check_time_window(task) == "expired":
+        say(f''':large_orange_circle: Task {task} has already expired.''')
+        return
     # Change 
     if old_status == "pending":
         messenger.update_assign_status(new_status, task, user)
         # task_list = messenger.get
         message = generate_message(task_list, user)
         client.chat_update(channel=body["channel"]["id"], ts = body["message"]["ts"], blocks = message,text="Rejected!")
-        say(f"You {new_status} task {task}")
+        compensation = round(random.randint(10, 30)/100, 2)
+        messenger.add_account_compensation(user, compensation)
+        say(f"You {new_status} task {task}.\nA compensation of ${compensation} is added to your account. Reply `account` to see your account status.")
     else:
         say(f"You already {old_status} task {task}")
     return

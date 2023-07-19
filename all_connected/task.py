@@ -65,7 +65,7 @@ def create_task(locations):
 
     return {'location': location,
             'time_window': random.randint(1, 100),
-            'compensation': round(random.randint(40, 60)/100, 2),
+            'compensation': round(random.randint(140, 160)/100, 2),
             'expired': False,
             'description': f'At {location} in the Science Center, {random.choice(all_descriptions)}'}
 

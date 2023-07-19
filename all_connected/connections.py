@@ -28,6 +28,7 @@ MESSENGER_BOT_CYCLE = 60*60+3
 START_HOURS = helper_functions.START_HOURS
 END_HOURS = helper_functions.END_HOURS
 
+admin_list = ["U05BL0N0G2V", "U05B24S3LR1", "U051SER8FNU", "U05BRV5FE7J", "U05DBM3U3DM"]
 
 ### ### Task Generation call ### ###
 # Generate & insert task(s)
@@ -41,7 +42,7 @@ def task_call():
 # Update expired tasks, matches unexpired & unassigned tasks to users, create those Assignments
 def match_call():
     """Takes & returns nothing. Container for match call timer."""
-    matching_assignments.match_users_and_tasks(matching_assignments.algorithm_random, DB_NAME)
+    matching_assignments.match_users_and_tasks(matching_assignments.algorithm_weighted, DB_NAME)
     print("- tasks matched", datetime.datetime.now())
 
 
@@ -82,7 +83,27 @@ def cancel_all_timers(task_timer, match_timer, messenger_timer):
 def daily_cycle():
     all_users = messenger.get_all_users_list()
     for user_id in all_users:
-        messenger.update_account_status(user_id, "active")
+        if user_id not in admin_list:
+            messenger.update_account_status(user_id, "active")
+    task_timer, match_timer, messenger_timer = start_all_timers()
+    # Run time
+    end_time = datetime.datetime.combine(datetime.date.today(), END_HOURS)
+    duration = (end_time - datetime.datetime.now()).total_seconds()
+    print(duration)
+    time.sleep(duration + 2) # run till end_time
+    # Check assignments and end daily summary
+    bot.check_all_assignments()
+    for user_id in all_users:
+        if user_id not in ['USLACKBOT']:
+            messenger.update_reliability(user_id)
+    # End all cycles
+    cancel_all_timers(task_timer, match_timer, messenger_timer)
+
+def short_cycle():
+    all_users = messenger.get_all_users_list()
+    for user_id in all_users:
+        if user_id not in admin_list:
+            messenger.update_account_status(user_id, "active")
     task_timer, match_timer, messenger_timer = start_all_timers()
     # Run time
     end_time = datetime.datetime.combine(datetime.date.today(), END_HOURS)
@@ -113,7 +134,8 @@ if __name__ == "__main__":
     # Try implementing using schedule library
     #schedule.every().day.at("16:40").do(cancel_all_timers)
     # daily_cycle()
-    schedule.every().day.at("12:00").do(daily_cycle)
+    schedule.every().day.at("10:07").do(daily_cycle)
+    
     while True:
         schedule.run_pending()
         time.sleep(1)
