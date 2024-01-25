@@ -53,9 +53,9 @@ with open('block_messages/headers.json', 'r') as infile:
 
 ### ### INITIALIZE BOLT APP ### ###
 # Initialize app, socket mode handler, & client 
-app = App(token= os.environ['CAT_BOT_TOKEN'])
+app = App(token= os.environ['TASK_BOT_TOKEN'])
 handler = SlackRequestHandler(app)
-client = WebClient(token=os.environ['CAT_BOT_TOKEN'])
+client = WebClient(token=os.environ['TASK_BOT_TOKEN'])
 
 # Get the bot id
 BOT_ID = client.api_call("auth.test")['user_id']
@@ -116,10 +116,10 @@ def generate_message(task_info, user_id):
     starttime_format = task_info[4].strftime("%A (%m/%d) at %I:%M%p")
     # text = (f"*Task # {task_info[0]}*,Location: {task_info[2]} \n" + 
     #         f"Description: {task_info[3]}\nStart Time: {starttime_format} \n" + 
-    #         f"Window: {task_info[5]} minutes \nCompensation: ${task_info[6]}")
+    #         f"Window: {task_info[5]} minutes \nCompensation: {task_info[6]}")
     
 
-    text = (f"PLACEHOLDER_EMOJI *Task #PLACEHOLDER_TASKID* PLACEHOLDER_EMOJI \n*Description:* PLACEHOLDER_DESCRIPTION. \n*Start Time:* PLACEHOLDER_STARTTIME \n*Window:* PLACEHOLDER_WINDOW minutes \n*Compensation:* $PLACEHOLDER_COMPENSATION")\
+    text = (f"PLACEHOLDER_EMOJI *Task #PLACEHOLDER_TASKID* PLACEHOLDER_EMOJI \n*Description:* PLACEHOLDER_DESCRIPTION. \n*Start Time:* PLACEHOLDER_STARTTIME \n*Window:* PLACEHOLDER_WINDOW minutes \n*Compensation:* PLACEHOLDER_COMPENSATION")\
                 .replace('PLACEHOLDER_EMOJI', EMOJI_DICT[int(str(task_info[0])[-1])]) \
                 .replace('PLACEHOLDER_TASKID', str(task_info[0])) \
                 .replace('PLACEHOLDER_DESCRIPTION', str(task_info[3])) \
@@ -148,7 +148,7 @@ def compact_task(task_info) -> dict:
     Returns a fully formed 'section' Slack block (dict).
     """
     starttime_format = task_info[4].strftime("%A (%m/%d) at %I:%M%p")
-    text  = "*Task #PLACEHOLDER_TASKID* (*comp:* $PLACEHOLDER_COMPENSATION)\n *Starts:* PLACEHOLDER_STARTTIME, *window*: PLACEHOLDER_WINDOW min \n*Description:* PLACEHOLDER_DESCRIPTION." \
+    text  = "*Task #PLACEHOLDER_TASKID* (*comp:* PLACEHOLDER_COMPENSATION)\n *Starts:* PLACEHOLDER_STARTTIME, *window*: PLACEHOLDER_WINDOW min \n*Description:* PLACEHOLDER_DESCRIPTION." \
                 .replace('PLACEHOLDER_TASKID', str(task_info[0])) \
                 .replace('PLACEHOLDER_DESCRIPTION', str(task_info[3])) \
                 .replace('PLACEHOLDER_STARTTIME', str(starttime_format)) \
@@ -244,10 +244,11 @@ def get_all_users_info() -> dict:
 
     # Turn the SlackResponse object type into dict type
     for user in users_array:
-        # Key user info on their unique user ID
-        user_id = user["id"]
-        # Store the entire user object (you may not need all of the info)
-        users_store[user_id] = user
+        if user['deleted'] == False:
+            # Key user info on their unique user ID
+            user_id = user["id"]
+            # Store the entire user object (you may not need all of the info)
+            users_store[user_id] = user
     
     return users_store
 
@@ -284,7 +285,7 @@ def check_all_assignments():
     
 def generate_account_summary_block(user_id):
     compensation, tasks = messenger.get_account_info(user_id)
-    text = f"All completed tasks: {tasks}\nTotal compensation: ${compensation}"
+    text = f"All completed tasks: {tasks}\nTotal compensation: {compensation} points"
     summary = [{
         "type": "section",
         "text": {
@@ -376,7 +377,7 @@ def handle_message(payload, say):
             else:
                 print("submitted")
                 url = file['url_private_download']
-                path = get_pic(url, os.environ['CAT_BOT_TOKEN'], user_id, task_id)
+                path = get_pic(url, os.environ['TASK_BOT_TOKEN'], user_id, task_id)
                 if messenger.submit_task(user_id, task_id, path):
                     messenger.update_reliability(user_id)
                     say(f"We received your submission to task {task_id}. Your compensation will be secured once we checked your submission. Reply `account` for more information on your account and completed tasks.")
@@ -461,7 +462,7 @@ def action_button_click(body, ack, say):
         client.chat_update(channel=body["channel"]["id"], ts = body["message"]["ts"], blocks = message,text="Rejected!")
         compensation = round(random.randint(10, 30)/100, 2)
         messenger.add_account_compensation(user, compensation)
-        say(f"You {new_status} task {task}.\nA compensation of ${compensation} is added to your account. Reply `account` to see your account status.")
+        say(f"You {new_status} task {task}.\nA compensation of {compensation} points is added to your account. Reply `account` to see your account status.")
     else:
         say(f"You already {old_status} task {task}")
     return

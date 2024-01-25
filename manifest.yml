@@ -1,0 +1,63 @@
+display_information:
+  name: TaskBot
+features:
+  bot_user:
+    display_name: TaskBot
+    always_online: false
+oauth_config:
+  scopes:
+    user:
+      - channels:history
+      - groups:history
+      - im:history
+      - mpim:history
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:manage
+      - channels:write.invites
+      - channels:write.topic
+      - chat:write
+      - files:read
+      - files:write
+      - groups:history
+      - groups:write
+      - im:history
+      - im:read
+      - im:write
+      - metadata.message:read
+      - mpim:history
+      - mpim:write
+      - reactions:read
+      - reactions:write
+      - remote_files:read
+      - users:read
+      - workflow.steps:execute
+      - conversations.connect:write
+settings:
+  event_subscriptions:
+    request_url: https://d785-192-42-89-2.ngrok-free.app/slack/events
+    bot_events:
+      - app_mention
+      - file_created
+      - file_shared
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+      - message_metadata_posted
+      - message_metadata_updated
+      - reaction_added
+      - team_join
+      - workflow_step_execute
+    metadata_subscriptions:
+      - app_id: "*"
+        event_type: message_metadata_posted
+      - app_id: "*"
+        event_type: message_metadata_updated
+  interactivity:
+    is_enabled: true
+    request_url: https://931a-192-42-89-2.ngrok-free.app/slack/events
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false

@@ -1,4 +1,8 @@
-USE snapngo_db;
+DROP DATABASE IF EXISTS `snapngo_db`;
+CREATE DATABASE `snapngo_db`;
+
+
+USE `snapngo_db`;
 
 DROP TABLE IF EXISTS `assignments`;
 DROP TABLE IF EXISTS `users`;

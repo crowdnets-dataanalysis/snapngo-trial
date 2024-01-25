@@ -6,15 +6,16 @@ Description: All functions for the Task Generation Component.
 import random
 import json
 import helper_functions
+import task_parameters
 from datetime import datetime, timedelta, time, date
 import pandas as pd 
 
 
 ### ### TASK PARAMETERS ### ###
-START_HOURS = time(10,00) # 10am
-END_HOURS = time(16,00) # 4pm
-TASK_TIMEWINDOW = random.randint(1, 100) # in minutes
-TASK_COMP = round(random.randint(40, 60)/100, 2) # in cents
+START_HOURS = task_parameters.START_HOURS
+END_HOURS = task_parameters.END_HOURS
+TASK_TIMEWINDOW = task_parameters.TASK_TIMEWINDOW # in minutes
+TASK_COMP = task_parameters.TASK_COMP # in points
 
 TASK_LOCATION_FILE = f'data/task_locations.json'
 TASK_DESCRIPTION_FILE = f'data/task_descriptions.json'
@@ -38,7 +39,7 @@ def random_datetime(n):
         start = datetime.combine(date, START_HOURS)   
     # If weekday, but before 10am -> start = today at start_hours
     elif now.time() < START_HOURS:
-        start = datetime.combine(date.date(), START_HOURS)
+        start = datetime.combine(now.date(), START_HOURS)
     # If weekday, during hours -> start time = now
     elif START_HOURS < now.time() < END_HOURS:
         start = now
@@ -47,7 +48,8 @@ def random_datetime(n):
         start = datetime.combine((now + timedelta(hours=24)), START_HOURS)
     
     # Get end time
-    end = datetime.combine(start.date(), END_HOURS) + timedelta(hours=1)
+    next_hour = time((now.hour+2),00)
+    end = datetime.combine(start.date(), next_hour) + timedelta(hours=1)
 
     # Generate & choose n random dates
     dates = pd.date_range(start, end, freq='1min').to_series()
@@ -109,7 +111,7 @@ def generate_tasks(num_tasks, db_name):
     Returns nothing.
     """
     # Open database connection
-    db = helper_functions.connectDB(db_name);
+    db = helper_functions.connectDB(db_name)
 
     # Get list of possible locations
     with open(TASK_LOCATION_FILE, 'r') as infile:

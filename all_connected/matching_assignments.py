@@ -116,7 +116,7 @@ def algorithm_weighted(assignment_data, task_data, user_data):
     task_users_dict = {} if not assignment_data else create_task_user_dict(assignment_data)
     reliability_dict = {user_data['id'][i]:float(user_data['reliability'][i]) for i in range(len(user_data['id']))}
     
-    # Split users into ab groups
+    # Split users into a-b groups
     # active_list = [user for user in reliability_dict if reliability_dict[user]> 0.1]
     # a_active, b_active = create_ab_groups(active_list)
     # inactive_list = [user for user in reliability_dict if reliability_dict[user]== 0.1]
@@ -125,9 +125,10 @@ def algorithm_weighted(assignment_data, task_data, user_data):
     # b_group = b_active + b_inactive
     # print("A GROUP: ", a_group)
     # print("B GROUP: ", b_group)
-    a_group = ['U05EX6F89BR', 'U05F44JN6HL', 'U05FAPY69PU', 'U05FCBGTX1R', 'U05B24S3LR1', 'U05E80KQ9D0', 'U05EW82D1E3', 'U05EW84936K', 'U05F44J029L', 'U05F7RYS093', 'U05FALCSWJF']
-    b_group = ['U05FMEAE62E', 'U05FPRMEMRS', 'U05G0FC05MW', 'U05G1M69C1E', 'U05FC4JJNUS', 'U05FCMQN908', 'U05FD7ERYMS', 'U05FE5S1BEG', 'U05FPD1KKLZ', 'U05G0FB3QKA', 'U05G0FC35CY']
     # For each task, select a new random user_id 
+    user_list = [user for user in reliability_dict]
+    a_group, b_group = create_ab_groups(user_list)
+
     matchings = []
     count = 0
     half_task = int(len(task_data)/2)

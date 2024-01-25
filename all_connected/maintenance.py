@@ -31,7 +31,7 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_bolt.adapter.flask import SlackRequestHandler
 
 from datetime import datetime, timedelta, time, date
-import schedule
+#import schedule
 
 
 ### ### Control Center ### ###
@@ -56,18 +56,19 @@ def broadcast(block = None, text = None):
     for user_id in active_users:
         bot.send_messages(user_id, block = None, text = None)
 
+def test_update_reliability(user_id):
+    conn = helper_functions.connectDB(DB_NAME)
+    cur = conn.cursor()
+    date = datetime.today().strftime('%Y/%m/%d')
+    print(date)
+    query = f'''SELECT task_id
+                FROM assignments
+                WHERE (user_id = '{user_id}') and DATE(recommend_time) >= CURDATE() -1
+            '''
+    cur.execute(query)
+    accepted = cur.fetchall()
+    print(accepted)
+
 if __name__ == "__main__":
-    #users_store = bot.get_all_users_info()
-    #bot.send_welcome_message({'U05B24S3LR1': ['helen'], 'U05FCMQN908':['cj']})
-    #messenger.delete_submission(user_id, task_id)
-    #bot.check_all_assignments()
-
-    user_store = bot.get_all_users_info()
     
-    # messenger.add_users(user_store)
-    # bot.send_welcome_message(["U05FAPY69PU"])
-    #bot.send_messages('U05B24S3LR1', text = ":robot:Thank ")
-
-    for user_id in user_store:
-        if user_id not in ['USLACKBOT']:
-            messenger.update_reliability(user_id)
+    add_new_users()

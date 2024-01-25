@@ -9,6 +9,7 @@ import matching_assignments
 import task
 import messenger
 import bot
+import task_parameters
 
 import datetime
 import time
@@ -17,18 +18,18 @@ import schedule
 ### ### Control Center ### ###
 DB_NAME = 'snapngo_db'
 
-TASK_CYCLE = 30*60
-NUM_TASKS_PER_CYCLE = messenger.get_total_users()*2
+TASK_CYCLE = task_parameters.TASK_CYCLE #every half an hour
+NUM_TASKS_PER_CYCLE = task_parameters.NUM_TASKS_PER_CYCLE 
 
-MATCHING_CYCLE = TASK_CYCLE+2
+MATCHING_CYCLE = task_parameters.MATCHING_CYCLE
 
-MESSENGER_BOT_CYCLE = 60*60+3
+MESSENGER_BOT_CYCLE = task_parameters.MESSENGER_BOT_CYCLE 
 
+START_HOURS = task_parameters.START_HOURS
+END_HOURS = task_parameters.END_HOURS
 
-START_HOURS = helper_functions.START_HOURS
-END_HOURS = helper_functions.END_HOURS
-
-admin_list = ["U05BL0N0G2V", "U05B24S3LR1", "U051SER8FNU", "U05BRV5FE7J", "U05DBM3U3DM"]
+# Researchers who are not regular participants 
+admin_list = task_parameters.admin_list
 
 ### ### Task Generation call ### ###
 # Generate & insert task(s)
@@ -42,7 +43,7 @@ def task_call():
 # Update expired tasks, matches unexpired & unassigned tasks to users, create those Assignments
 def match_call():
     """Takes & returns nothing. Container for match call timer."""
-    matching_assignments.match_users_and_tasks(matching_assignments.algorithm_weighted, DB_NAME)
+    matching_assignments.match_users_and_tasks(task_parameters.MATCHING_ALGO, DB_NAME)
     print("- tasks matched", datetime.datetime.now())
 
 
@@ -116,25 +117,13 @@ def short_cycle():
     cancel_all_timers(task_timer, match_timer, messenger_timer)
 
 if __name__ == "__main__":
-    # user_store = bot.get_all_users_info()
-    # messenger.add_users(user_store)
-    # #bot.send_welcome_message(user_store)
+    start_hours_str = START_HOURS.strftime("%H:%M")
 
-    # Start all cycles
-    # start_all_timers()
-
-    # # Run time
-    # time.sleep(3*60*60*24) # run for three days
-
-    # # End all cycles
-    # task_timer.cancel()
-    # match_timer.cancel()
-    # messenger_timer.cancel()
-
-    # Try implementing using schedule library
-    #schedule.every().day.at("16:40").do(cancel_all_timers)
-    # daily_cycle()
-    schedule.every().day.at("10:07").do(daily_cycle)
+    schedule.every().monday.at(start_hours_str).do(short_cycle)
+    schedule.every().tuesday.at(start_hours_str).do(short_cycle)
+    schedule.every().wednesday.at(start_hours_str).do(short_cycle)
+    schedule.every().thursday.at(start_hours_str).do(short_cycle)
+    schedule.every().friday.at(start_hours_str).do(short_cycle)
     
     while True:
         schedule.run_pending()
