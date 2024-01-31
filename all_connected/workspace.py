@@ -3,10 +3,16 @@ import random
 import json
 from datetime import datetime, timedelta
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+env_path = Path('..') / '.env'
+load_dotenv(dotenv_path=env_path)
+
 from messenger import update_tasks_expired, get_task_list
 from helper_functions import connectDB
 
-DB_NAME = "snapngo_db" 
+DB_NAME = os.environ['DB_NAME']
 
 
 with open('block_messages/default_btn.json', 'r') as infile:

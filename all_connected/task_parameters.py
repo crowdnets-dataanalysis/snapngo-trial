@@ -2,9 +2,13 @@ from datetime import datetime, time
 import random
 
 import matching_assignments
-import messenger
 
-num_total_users = messenger.get_total_users() #get number of total participants from the database
+def get_num_users():
+    '''Helper function to get the total number of users in the Slack workspace'''
+    from messenger import get_total_users
+    return get_total_users()
+
+num_total_users = get_num_users() #get number of total participants from the database
                                                 #helper variable
 
 ##### TASK CYCLE PARAMETERS #####
@@ -43,3 +47,4 @@ MATCHING_ALGO = matching_assignments.algorithm_random   #random matching algorit
 ##### #####
 admin_list = ["U05BL0N0G5V", "U05B24S3LR9"] #system admins (eg. researchers) can put their slack ID in this list
                                             #if they don't wish to receive tasks like users do.
+

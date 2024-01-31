@@ -4,7 +4,12 @@ Date: 06/07/2023
 Description: File that connects all 5 components & calls functions for them to 
     run the backend of Snap N Go.
 """
-import helper_functions
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+env_path = Path('..') / '.env'
+load_dotenv(dotenv_path=env_path)
+
 import matching_assignments
 import task
 import messenger
@@ -14,9 +19,10 @@ import task_parameters
 import datetime
 import time
 import schedule
+from threading import Timer
 
 ### ### Control Center ### ###
-DB_NAME = 'snapngo_db'
+DB_NAME = os.environ['DB_NAME']
 
 TASK_CYCLE = task_parameters.TASK_CYCLE #every half an hour
 NUM_TASKS_PER_CYCLE = task_parameters.NUM_TASKS_PER_CYCLE 
@@ -30,6 +36,22 @@ END_HOURS = task_parameters.END_HOURS
 
 # Researchers who are not regular participants 
 admin_list = task_parameters.admin_list
+
+
+
+class RepeatTimer(Timer):
+    def __init__(self, func, seconds=10, minutes=0, hours=0):
+        super().__init__(seconds + minutes*60 + hours*3600, func)
+        func()
+
+    def run(self):
+        now = datetime.now()
+        not_weekend = now.strftime("%A").lower() not in {'saturday', 'sunday'}
+        during_workday = START_HOURS < now.time() < END_HOURS
+        while not self.finished.wait(self.interval):
+            if not_weekend and during_workday:
+                self.function(*self.args, **self.kwargs)
+
 
 ### ### Task Generation call ### ###
 # Generate & insert task(s)
@@ -59,12 +81,12 @@ def messenger_bot_call():
 
 
 def start_all_timers():
-    task_timer = helper_functions.RepeatTimer(task_call, TASK_CYCLE)
-    match_timer = helper_functions.RepeatTimer(match_call,
+    task_timer = RepeatTimer(task_call, TASK_CYCLE)
+    match_timer = RepeatTimer(match_call,
                                 seconds=MATCHING_CYCLE,
                                 minutes=0,
                                 hours=0)
-    messenger_timer = helper_functions.RepeatTimer(messenger_bot_call,
+    messenger_timer = RepeatTimer(messenger_bot_call,
                                 seconds=MESSENGER_BOT_CYCLE,
                                 minutes=0,
                                 hours=0)

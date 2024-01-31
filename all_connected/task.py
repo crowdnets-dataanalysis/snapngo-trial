@@ -10,6 +10,11 @@ import task_parameters
 from datetime import datetime, timedelta, time, date
 import pandas as pd 
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+env_path = Path('..') / '.env'
+load_dotenv(dotenv_path=env_path)
 
 ### ### TASK PARAMETERS ### ###
 START_HOURS = task_parameters.START_HOURS
@@ -20,6 +25,7 @@ TASK_COMP = task_parameters.TASK_COMP # in points
 TASK_LOCATION_FILE = f'data/task_locations.json'
 TASK_DESCRIPTION_FILE = f'data/task_descriptions.json'
 
+DB_NAME = os.environ['DB_NAME']
 
 ### ### HELPER FUNCTIONS ### ###
 def random_datetime(n):
@@ -85,7 +91,7 @@ def insert_tasks(db, tasks_list, start_times):
     """
     # Connect to database & a cursor object
     cursor = db.cursor()
-    cursor.execute("SHOW COLUMNS FROM tasks FROM snapngo_db")
+    cursor.execute(f"SHOW COLUMNS FROM tasks FROM {DB_NAME}")
     columns = cursor.fetchall()
     #print("insert", start_times)
     for i, task in enumerate(tasks_list):
@@ -133,5 +139,5 @@ def generate_tasks(num_tasks, db_name):
 
 
 if __name__ == '__main__':
-    generate_tasks(3, 'snapngo_db')
+    generate_tasks(3, DB_NAME)
     

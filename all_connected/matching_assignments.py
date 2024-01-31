@@ -9,6 +9,12 @@ import pymysql
 import helper_functions
 from datetime import datetime
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+env_path = Path('..') / '.env'
+load_dotenv(dotenv_path=env_path)
+
 ### ### SPECIFIC HELPER FUNCTIONS ### ###
 def read_table(db, table_name):
     """
@@ -188,4 +194,5 @@ def match_users_and_tasks(matching_algo, db_name):
 
 
 if __name__ == '__main__':
-    match_users_and_tasks(algorithm_weighted, 'snapngo_db')
+    db_name = os.environ['DB_NAME']
+    match_users_and_tasks(algorithm_weighted, db_name)

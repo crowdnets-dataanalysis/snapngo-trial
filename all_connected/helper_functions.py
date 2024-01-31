@@ -11,14 +11,11 @@ load_dotenv(dotenv_path=env_path)
 
 import pymysql
 from flask import Flask
-from threading import Timer
+
 
 from datetime import datetime, time
 
-import task_parameters
 
-START_HOURS = task_parameters.START_HOURS
-END_HOURS = task_parameters.END_HOURS
 
 def connectDB(dbName):
     """
@@ -66,18 +63,6 @@ def read_file(fname):
         # Return the matrix and the dictionary of vertices
         return matrix, vertices
 
-class RepeatTimer(Timer):
-    def __init__(self, func, seconds=10, minutes=0, hours=0):
-        super().__init__(seconds + minutes*60 + hours*3600, func)
-        func()
-
-    def run(self):
-        now = datetime.now()
-        not_weekend = now.strftime("%A").lower() not in {'saturday', 'sunday'}
-        during_workday = START_HOURS < now.time() < END_HOURS
-        while not self.finished.wait(self.interval):
-            if not_weekend and during_workday:
-                self.function(*self.args, **self.kwargs)
 
 
 if __name__ == '__main__':

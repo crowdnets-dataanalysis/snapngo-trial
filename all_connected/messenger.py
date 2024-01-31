@@ -10,8 +10,14 @@ run this file in another terminal
 import helper_functions
 from datetime import datetime
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+env_path = Path('..') / '.env'
+load_dotenv(dotenv_path=env_path)
+
 ### ### CONSTANTS ### ###
-DB_NAME = "snapngo_db" 
+DB_NAME = os.environ['DB_NAME']
 
 
 def add_users(user_store):

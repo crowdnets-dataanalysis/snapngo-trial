@@ -9,6 +9,7 @@ import matching_assignments
 import task
 import messenger
 import bot
+import task_parameters
 
 import time
 
@@ -18,8 +19,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 env_path = Path('..') / '.env'
 load_dotenv(dotenv_path=env_path)
-
-import messenger
 
 import json
 import requests
@@ -35,11 +34,10 @@ from datetime import datetime, timedelta, time, date
 
 
 ### ### Control Center ### ###
-DB_NAME = 'snapngo_db'
+DB_NAME = os.environ['DB_NAME']
 
-START_HOURS = helper_functions.START_HOURS
-END_HOURS = helper_functions.END_HOURS
-
+START_HOURS = task_parameters.START_HOURS
+END_HOURS = task_parameters.END_HOURS
 
 def add_new_users():
     user_store = bot.get_all_users_info()
@@ -70,5 +68,5 @@ def test_update_reliability(user_id):
     print(accepted)
 
 if __name__ == "__main__":
-    
     add_new_users()
+    print("DONE")

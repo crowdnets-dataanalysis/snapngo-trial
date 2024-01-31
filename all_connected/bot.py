@@ -19,7 +19,7 @@ import random
 
 
 ### ### CONSTANTS ### ###
-DB_NAME = 'snapngo_db'
+DB_NAME = os.environ['DB_NAME']
 
 EMOJI_DICT = {0: '🪴', 
                 1: '🌺', 
