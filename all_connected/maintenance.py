@@ -44,7 +44,6 @@ def add_new_users():
     messenger.add_users(user_store)
 
 def delete_invalid_submissions(user_id, task_id, assignment_id):
-
     message = []
     bot.send_messages(user_id, message, "invalid submission")
     return

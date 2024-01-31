@@ -16,7 +16,7 @@ import messenger
 import bot
 import task_parameters
 
-import datetime
+from datetime import datetime as dt, date
 import time
 import schedule
 from threading import Timer
@@ -45,7 +45,7 @@ class RepeatTimer(Timer):
         func()
 
     def run(self):
-        now = datetime.now()
+        now = dt.now()
         not_weekend = now.strftime("%A").lower() not in {'saturday', 'sunday'}
         during_workday = START_HOURS < now.time() < END_HOURS
         while not self.finished.wait(self.interval):
@@ -58,7 +58,7 @@ class RepeatTimer(Timer):
 def task_call():
     """Takes & returns nothing. Container for task call timer."""
     task.generate_tasks(NUM_TASKS_PER_CYCLE, DB_NAME)
-    print('- tasks generated', datetime.datetime.now())
+    print('- tasks generated', dt.now())
 
 
 ### ### Matching Algorithm & Assignments call ### ###
@@ -66,7 +66,7 @@ def task_call():
 def match_call():
     """Takes & returns nothing. Container for match call timer."""
     matching_assignments.match_users_and_tasks(task_parameters.MATCHING_ALGO, DB_NAME)
-    print("- tasks matched", datetime.datetime.now())
+    print("- tasks matched", dt.now())
 
 
 ### ### MESSENGER call ### ###
@@ -94,11 +94,11 @@ def start_all_timers():
     task_timer.start()
     match_timer.start()
     messenger_timer.start()
-    print("STARTED ALL TIMERS", datetime.datetime.now())
+    print("STARTED ALL TIMERS", dt.now())
     return task_timer, match_timer, messenger_timer
 
 def cancel_all_timers(task_timer, match_timer, messenger_timer):
-    print("CANCEL ALL TIMERS", datetime.datetime.now())
+    print("CANCEL ALL TIMERS", dt.now())
     task_timer.cancel()
     match_timer.cancel()
     messenger_timer.cancel()
@@ -110,8 +110,8 @@ def daily_cycle():
             messenger.update_account_status(user_id, "active")
     task_timer, match_timer, messenger_timer = start_all_timers()
     # Run time
-    end_time = datetime.datetime.combine(datetime.date.today(), END_HOURS)
-    duration = (end_time - datetime.datetime.now()).total_seconds()
+    end_time = dt.combine(date.today(), END_HOURS)
+    duration = (end_time - dt.now()).total_seconds()
     print(duration)
     time.sleep(duration + 2) # run till end_time
     # Check assignments and end daily summary
@@ -129,8 +129,8 @@ def short_cycle():
             messenger.update_account_status(user_id, "active")
     task_timer, match_timer, messenger_timer = start_all_timers()
     # Run time
-    end_time = datetime.datetime.combine(datetime.date.today(), END_HOURS)
-    duration = (end_time - datetime.datetime.now()).total_seconds()
+    end_time = dt.combine(date.today(), END_HOURS)
+    duration = (end_time - dt.now()).total_seconds()
     print(duration)
     time.sleep(duration + 2) # run till end_time
     # Check assignments and end daily summary

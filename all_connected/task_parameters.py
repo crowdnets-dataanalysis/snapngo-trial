@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import time
 import random
 
 import matching_assignments
@@ -6,7 +6,9 @@ import matching_assignments
 def get_num_users():
     '''Helper function to get the total number of users in the Slack workspace'''
     from messenger import get_total_users
-    return get_total_users()
+    num_users = get_total_users()
+    print("NUM_USERS: ", num_users)
+    return num_users
 
 num_total_users = get_num_users() #get number of total participants from the database
                                                 #helper variable
@@ -45,6 +47,6 @@ MATCHING_ALGO = matching_assignments.algorithm_random   #random matching algorit
 
 
 ##### #####
-admin_list = ["U05BL0N0G5V", "U05B24S3LR9"] #system admins (eg. researchers) can put their slack ID in this list
+admin_list = ["U063BR68ZEZ", "U05B24S3LR9"] #system admins (eg. researchers) can put their slack ID in this list
                                             #if they don't wish to receive tasks like users do.
 

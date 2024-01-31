@@ -22,9 +22,8 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS tasks (
     id INT AUTO_INCREMENT,
     `location` VARCHAR(100),
-    `description` VARCHAR(100),
+    `description` VARCHAR(500),
     start_time DATETIME,
-    deadline DATETIME,
     time_window INT(3),
     compensation DECIMAL(4,2) DEFAULT 0,
     expired BOOLEAN,
