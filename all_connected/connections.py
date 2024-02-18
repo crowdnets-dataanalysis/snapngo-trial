@@ -146,6 +146,8 @@ if __name__ == "__main__":
     schedule.every().wednesday.at(start_hours_str).do(short_cycle)
     schedule.every().thursday.at(start_hours_str).do(short_cycle)
     schedule.every().friday.at(start_hours_str).do(short_cycle)
+    schedule.every().saturday.at(start_hours_str).do(short_cycle)
+    schedule.every().sunday.at(start_hours_str).do(short_cycle)
     
     while True:
         schedule.run_pending()
