@@ -14,7 +14,7 @@ num_total_users = get_num_users() #get number of total participants from the dat
                                                 #helper variable
 
 ##### TASK CYCLE PARAMETERS #####
-START_HOURS = time(9,00) #9 am
+START_HOURS = time(13,15) #9 am
 END_HOURS = time(17,00) #5:00 pm
 
 
@@ -37,8 +37,8 @@ MESSENGER_BOT_CYCLE = 60*60+2   #in seconds. cycle where the slack bot send the 
 
 TASK_TIMEWINDOW = random.randint(1, 100) #in minutes. the length of time allowed for finishing one task
                                             #Default: from 1 minute to 100 minutes.
-TASK_COMP = random.randint(2, 5) #in points. the compensation participants can get for finishing each task
-                                    #Default: from 2 to 5 points
+TASK_COMP = (2, 6) #in points. the range of compensation participants can get for finishing each task
+                                    #Default: from 2 to 6 points, not including 6
 
 
 ##### #####
