@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(50),
     `name` VARCHAR(50),
     compensation DECIMAL(4,2) DEFAULT 0,
-    reliability DECIMAL(4,2) DEFAULT NULL,
+    reliability DECIMAL(4,2) DEFAULT 0.5,
     `status` ENUM('active', 'inactive') DEFAULT 'active',
     PRIMARY KEY (id)
 )
