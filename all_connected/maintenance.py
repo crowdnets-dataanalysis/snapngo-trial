@@ -23,6 +23,7 @@ load_dotenv(dotenv_path=env_path)
 import json
 import requests
 import copy
+import pandas as pd
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from slack_bolt import App
@@ -66,6 +67,35 @@ def test_update_reliability(user_id):
     accepted = cur.fetchall()
     print(accepted)
 
+def export_table_to_csv(table_name, csv_file):
+    # Connect to MySQL database
+    conn = helper_functions.connectDB(DB_NAME)
+
+    try:
+        # Execute SQL query to fetch data from table
+        with conn.cursor() as cursor:
+            sql = f'SELECT * FROM {table_name}'
+            cursor.execute(sql)
+            result = cursor.fetchall()
+
+        # Convert result to DataFrame
+        df = pd.DataFrame(result)
+
+        # Save DataFrame to CSV file with column names
+        df.to_csv(csv_file, index=False)
+
+        print(f"Table '{table_name}' exported to '{csv_file}' successfully.")
+
+    finally:
+        # Close database connection
+        conn.close()
+
+
+
 if __name__ == "__main__":
-    add_new_users()
+    # add_new_users()
+    # bot.send_messages('U05B24S3LR1', block = None, text = 'Hello world')
+    export_table_to_csv('users', '../users.csv')
+    export_table_to_csv('assignments', '../assignments.csv')
+    export_table_to_csv('tasks', '../tasks.csv')
     print("DONE")
