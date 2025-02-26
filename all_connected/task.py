@@ -22,7 +22,7 @@ END_HOURS = task_parameters.END_HOURS
 TASK_TIMEWINDOW = task_parameters.TASK_TIMEWINDOW # in minutes
 TASK_COMP = task_parameters.TASK_COMP # in points
 
-TASK_LOCATION_FILE = f'data/task_locations.json'
+TASK_LOCATION_FILE = f'data/task_locations.json' #json file in data folder with an array of "sorted" locations
 TASK_DESCRIPTION_FILE = f'data/task_descriptions.json'
 
 DB_NAME = os.environ['DB_NAME']
