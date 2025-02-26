@@ -23,9 +23,9 @@ TASK_TIMEWINDOW = task_parameters.TASK_TIMEWINDOW # in minutes
 TASK_COMP = task_parameters.TASK_COMP # in points
 
 TASK_LOCATION_FILE = f'data/task_locations.json' #json file in data folder with an array of "sorted" locations
-TASK_DESCRIPTION_FILE = f'data/task_descriptions.json'
+TASK_DESCRIPTION_FILE = f'data/task_descriptions.json' # file with an array of strings of task decriptions
 
-DB_NAME = os.environ['DB_NAME']
+DB_NAME = os.environ['DB_NAME'] # what does this do?
 
 ### ### HELPER FUNCTIONS ### ###
 def random_datetime(n):
@@ -39,7 +39,7 @@ def random_datetime(n):
     now = datetime.now()
     
     # If today's a weekend or after hours on friday -> start = next monday at start_hours
-    weekday = now.strftime("%A").lower()
+    weekday = now.strftime("%A").lower() # how does this work?
     if weekday in {'saturday', 'sunday'} or (weekday == 'friday' and now.time() > END_HOURS):
         date = datetime.now() + timedelta(days=-now.date().weekday(), weeks=1) # next monday
         start = datetime.combine(date, START_HOURS)   
